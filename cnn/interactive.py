@@ -1,0 +1,209 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Mar 20 16:03:40 2016
+
+@author: Andrew
+github: Andrew62
+
+"""
+
+import os
+import time
+import shutil
+import numpy as np
+import tensorflow as tf
+from data import DataSet
+from config import workspace
+from datetime import datetime
+#from tensorflow.python.platform import gfile
+              
+def model_name(now):
+    year = now.year
+    month = now.month
+    day = now.day
+    return "model_{0}{1}{2}.ckpt".format(year, month, day)
+    
+def accuracy(predictions, labels):
+    return (np.sum(np.argmax(predictions, 1) == np.argmax(labels, 1))*1.)/predictions.shape[0]
+       
+
+data = DataSet(workspace.train_pkl, workspace.test_pkl, 
+              workspace.valid_pkl, workspace.class_pkl,
+              img_shape=(256,256,3))  
+NUM_CORES=4
+BATCH_SIZE = 256
+N_CLASSES = data.n_classes
+train_dat_size = (BATCH_SIZE, 256, 256, 3)
+train_lab_size = (BATCH_SIZE, 252)
+
+
+test_data, test_labels = data.test_batch(BATCH_SIZE)
+valid_data, valid_labels = data.valid_batch(BATCH_SIZE)
+
+graph = tf.Graph()
+with graph.as_default():
+    
+    tf_test_data = tf.constant(test_data, name="tf_test_data", 
+                               dtype=tf.float32, shape=train_dat_size)
+    
+    valid_data_constant = tf.constant(valid_data, name="valid_data_constant", 
+                                      dtype=tf.float32, shape=train_dat_size)
+
+    train_data_placeholder = tf.placeholder(dtype=tf.float32,
+                                            shape=train_dat_size,
+                                            name="train_data_placeholder")
+    train_labels_placeholder = tf.placeholder(dtype=tf.float32,
+                                              shape = train_lab_size,
+                                              name='train_labels_placeholder')
+
+    kernel_1 = tf.Variable(tf.truncated_normal([11,11,3,48], dtype=tf.float32,
+                                               stddev=1e-2, name='kernel_1'))
+    biases_1 = tf.Variable(tf.constant(0.1, shape=[48], dtype=tf.float32, 
+                                       name='biases_1'))
+    kernel_2 = tf.Variable(tf.truncated_normal([5,5,48,128], dtype=tf.float32,
+                                               stddev=1e-2, name='kernel_2'))
+    biases_2 = tf.Variable(tf.constant(1.0, shape=[128], dtype=tf.float32, 
+                                       name='biases_2'))
+                                                                    
+    kernel_3 = tf.Variable(tf.truncated_normal([3, 3, 128, 192], dtype=tf.float32,
+                                               stddev=1e-2, name='kernel_3'))
+    biases_3 = tf.Variable(tf.constant(0.1, shape=[192], dtype=tf.float32,
+                                       name='biases_3'))
+    kernel_4 = tf.Variable(tf.truncated_normal([3 ,3, 192, 192], dtype=tf.float32,
+                                               stddev=1e-2, name='kernel_4'))
+    biases_4 = tf.Variable(tf.constant(1.0, shape=[192], dtype=tf.float32,
+                                       name='biases_4'))
+    kernel_5 = tf.Variable(tf.truncated_normal([3, 3, 192, 128], dtype=tf.float32, 
+                                               stddev=1e-1, name='kernel_5'))
+    biases_5 = tf.Variable(tf.constant(1.0, shape=[128], dtype=tf.float32,
+                                       name='biases_5')) 
+    #middle_shape = pool_5_shape[1]*pool_5_shape[2] * pool_5_shape[3]
+    middle_shape = 8192
+                          
+    layer_6 = tf.Variable(tf.truncated_normal([middle_shape, 4096], dtype=tf.float32, 
+                                              stddev=1e-2, name='layer_6'))                                  
+    biases_6 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[4096],
+                                       name='biases_6'))
+    layer_7 = tf.Variable(tf.truncated_normal([4096, 4096], dtype=tf.float32,
+                                              stddev=1e-2, name='layer_7'))
+    biases_7 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[4096],
+                                       name='biases_7'))
+    layer_8 = tf.Variable(tf.truncated_normal([4096, N_CLASSES], dtype=tf.float32,
+                                              stddev=1e-2, name='layer_8'))
+    biases_8 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[N_CLASSES],
+                                       name="biases_8"))                                              
+    
+    def model(data, train=True):             
+        conv_1 = tf.nn.conv2d(data, kernel_1, [1,4,4,1], 
+                              padding='SAME', name='convolution_1')
+    
+        hidden_1 = tf.nn.relu(conv_1+biases_1, name='ReLU_1')
+        
+        norm_1 = tf.nn.local_response_normalization(hidden_1, 
+                                                    depth_radius = 2,
+                                                    alpha = 2e-05, 
+                                                    beta = 0.75, 
+                                                    bias = 1.0,
+                                                    name='norm_1')
+        
+        max_pool_1 = tf.nn.max_pool(norm_1, [1,3,3,1],[1,2,2,1], "SAME", 
+                                    name='max_pool_1')
+                                    
+        conv_2 = tf.nn.conv2d(max_pool_1, kernel_2, strides=[1,1,1,1],
+                                 padding='SAME', name='conv_2')
+        hidden_2 = tf.nn.relu(conv_2+biases_2, name='ReLU_2')
+        
+        norm_2 = tf.nn.local_response_normalization(hidden_2,
+                                                    depth_radius = 2,
+                                                    alpha = 2e-05, 
+                                                    beta = 0.75, 
+                                                    bias = 1.0,name='norm_2')
+        
+        max_pool_2 = tf.nn.max_pool(norm_2, [1,3,3,1],[1,2,2,1], "SAME", 
+                                    name='max_pool_2')
+       
+        conv_3 = tf.nn.conv2d(max_pool_2, kernel_3, strides=[1,1,1,1],
+                              padding='SAME', name='conv_3')
+        
+        hidden_3 = tf.nn.relu(conv_3+biases_3, name='relu_3')
+    
+        conv_4 = tf.nn.conv2d(hidden_3, kernel_4, strides=[1,1,1,1],
+                              padding='SAME', name='conv_4')
+        hidden_4 = tf.nn.relu(conv_4+biases_4, name='hidden_4')
+        
+        conv_5 = tf.nn.conv2d(hidden_4, kernel_5, strides=[1,1,1,1], 
+                              padding='SAME', name='conv_5')
+        max_pool_5 = tf.nn.max_pool(conv_5, [1,3,3,1], [1,2,2,1], 
+                                    padding='SAME',name='max_pool_5')  
+#        pool_5_shape = max_pool_5.get_shape().as_list()
+        
+        reshape_max_pool_5 = tf.reshape(max_pool_5,[BATCH_SIZE, middle_shape])
+        
+        matmul_6 = tf.matmul(reshape_max_pool_5, layer_6)
+        
+        hidden_6 = tf.nn.relu(matmul_6+biases_6, name='hidden_6')
+        
+        matmul_7 = tf.matmul(hidden_6, layer_7)
+        
+        hidden_7 = tf.nn.relu(matmul_7+biases_7, name='hidden_7')
+        
+        matmul_8 = tf.matmul(hidden_7, layer_8)
+        
+        return tf.nn.relu(matmul_8+biases_8, name="logits")
+        
+    logits = model(train_data_placeholder)
+    
+    #cross entropy 
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, train_labels_placeholder))
+    optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
+    
+
+    
+    train_prediction = tf.nn.softmax(logits)
+    valid_prediction = tf.nn.softmax(model(valid_data_constant))
+    test_prediction = tf.nn.softmax(model(tf_test_data))
+    
+
+
+config = tf.ConfigProto(inter_op_parallelism_threads=NUM_CORES,
+                        intra_op_parallelism_threads=NUM_CORES)
+                        
+with tf.device("/cpu:0"):
+    with tf.Session(graph=graph, config=config) as sess:
+        tf.initialize_all_variables().run()
+        print "\n","*"*50
+        print "Batch size: {0} images".format(BATCH_SIZE)
+        print "Initialized"
+        saver = tf.train.Saver(tf.all_variables(), name='dogcatcher', keep_checkpoint_every_n_hours=24)
+        try:
+            for i in xrange(3001):
+                start = time.time()
+                train_dat, train_lab = data.train_batch(BATCH_SIZE)
+                feed_dict = {train_data_placeholder: train_dat,
+                             train_labels_placeholder: train_lab}
+                _, sess_loss, predictions = sess.run([optimizer, loss, train_prediction], 
+                                                     feed_dict=feed_dict)
+                                                     
+                                        
+#                if (i+1) % 10 == 0:
+                print "\n","*"*50
+                print 'Minibatch loss at step {0}: {1:0.2f}'.format(i+1, sess_loss.mean())
+                print 'Minibatch accuracy: {0:0.2%}'.format(accuracy(predictions, train_lab))
+                print "Valid accuracy: {0:0.2%}".format(accuracy(valid_prediction.eval(), valid_labels))
+                print 'Minibatch time: {0:0.0f} secs'.format(time.time() - start)
+            print "\n","*"*50
+            print "\n","*"*50
+            print 'Test accuracy: %.1f%%' % accuracy(test_prediction.eval(), test_labels)
+        except tf.errors.InvalidArgumentError as e:
+            print e
+            print "Failed after {0} steps".format(i)
+        
+        finally:
+            saver.save(sess, os.path.join(workspace.model_dir, model_name(datetime.now())))
+            outg = os.path.join(workspace.model_dir, "graph")
+            if os.path.exists(outg):
+                shutil.rmtree(outg)
+            tf.train.write_graph(sess.graph_def, outg, "graph.pb")
+
+
+    
