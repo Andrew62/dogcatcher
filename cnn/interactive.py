@@ -32,7 +32,7 @@ data = DataSet(workspace.train_pkl, workspace.test_pkl,
               workspace.valid_pkl, workspace.class_pkl,
               img_shape=(256,256,3))  
 NUM_CORES=4
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 N_CLASSES = data.n_classes
 train_dat_size = (BATCH_SIZE, 256, 256, 3)
 train_lab_size = (BATCH_SIZE, 252)
@@ -156,7 +156,7 @@ with graph.as_default():
     
     #cross entropy 
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, train_labels_placeholder))
-    optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001).minimize(loss)
     
 
     
@@ -175,7 +175,8 @@ with tf.device("/cpu:0"):
         print "\n","*"*50
         print "Batch size: {0} images".format(BATCH_SIZE)
         print "Initialized"
-        saver = tf.train.Saver(tf.all_variables(), name='dogcatcher', keep_checkpoint_every_n_hours=24)
+        saver = tf.train.Saver(tf.all_variables(), name='dogcatcher', 
+                               keep_checkpoint_every_n_hours=24)
         performance_data = {}
         try:
             for i in xrange(50001):
@@ -186,12 +187,16 @@ with tf.device("/cpu:0"):
                              train_labels_placeholder: train_lab}
                 _, sess_loss, predictions = sess.run([optimizer, loss, train_prediction], 
                                                      feed_dict=feed_dict)
-                                                     
-                performance_data[i]['loss']=sess_loss.mean()
-                minibatch_accuracy = accuracy(predictions, train_lab)
-                performance_data[i]['minibatch accuracy']=minibatch_accuracy
+                
+                minibatch_accuracy = accuracy(predictions, train_lab)   
                 valid_accuracy = accuracy(valid_prediction.eval(), valid_labels)
+                
+                #collecting data for visualization later                                  
+                performance_data[i]['loss']=sess_loss.mean()
+                performance_data[i]['minibatch accuracy']=minibatch_accuracy
                 performance_data[i]['valid accuracy'] = valid_accuracy
+                
+                
 #                if (i+1) % 10 == 0:
                 print "\n","*"*50
                 print 'Minibatch loss at step {0}: {1:0.2f}'.format(i+1, sess_loss.mean())
@@ -212,6 +217,7 @@ with tf.device("/cpu:0"):
                 shutil.rmtree(outg)
             tf.train.write_graph(sess.graph_def, outg, "graph.pb")
             performance_frame = pd.DataFrame.from_dict(performance_data, orient='index')
-            performance_frame.to_csv(os.path.join(workspace.model_dir, 'performance.csv'), index=False)
+            performance_frame.to_csv(os.path.join(workspace.model_dir, 'performance.csv'), 
+                                     index=False)
 
     
