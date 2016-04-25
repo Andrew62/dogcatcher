@@ -59,7 +59,11 @@ class DataSet(object):
             row = self.tracker[name]['data'][idx, :]
             img = imread(row[1])
             label = self.encoder.encode(row[0])
-            batch_data[i,:,:,:] = img.astype(np.float32)
+            try:
+                batch_data[i,:,:,:] = img
+            except TypeError:
+                print row[1]
+                raise Exception("Image is a {0}".format(img.shape))
             batch_labels[i,:] = label
         self.tracker[name]['idx'] += batch_size
         normed = (batch_data - np.mean(batch_data))/(np.std(batch_data))
