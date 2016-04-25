@@ -49,7 +49,7 @@ if __name__ == "__main__":
     DATA_DIR = workspace.data_dir
     OUT_DIR = workspace.out_dir
     OUT_CSV = workspace.out_csv
-    PROCESSES=8
+    PROCESSES=12
     PIXELS=256
     q = Queue()
     new_folders = []
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         process.start()
         
     for raw_folder in os.listdir(DATA_DIR):
-        if raw_folder == '.DS_Store':
+        if raw_folder.startswith('.'):
             continue
         indir = os.path.join(DATA_DIR, raw_folder)
 
