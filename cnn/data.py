@@ -55,7 +55,7 @@ class DataSet(object):
         batch_data = np.zeros(shape=batch_shape, dtype=np.float32)
         batch_labels = np.zeros(shape=(batch_size,len(self.classes)), dtype=np.float32)
         for i in range(batch_size):
-            idx = self.tracker[name]['idx'] + 1
+            idx = self.tracker[name]['idx'] + i
             row = self.tracker[name]['data'][idx, :]
             img = imread(row[1])
             label = self.encoder.encode(row[0])
