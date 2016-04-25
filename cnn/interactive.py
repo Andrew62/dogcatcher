@@ -16,7 +16,7 @@ import tensorflow as tf
 from data import DataSet
 from config import workspace
 from datetime import datetime
-#from tensorflow.python.platform import gfile
+
               
 def model_name(now):
     year = now.year
@@ -81,15 +81,15 @@ with graph.as_default():
     #middle_shape = pool_5_shape[1]*pool_5_shape[2] * pool_5_shape[3]
     middle_shape = 8192
                           
-    layer_6 = tf.Variable(tf.truncated_normal([middle_shape, 4096], dtype=tf.float32, 
+    layer_6 = tf.Variable(tf.truncated_normal([256, middle_shape], dtype=tf.float32, 
                                               stddev=1e-2, name='layer_6'))                                  
-    biases_6 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[4096],
+    biases_6 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[middle_shape],
                                        name='biases_6'))
-    layer_7 = tf.Variable(tf.truncated_normal([4096, 4096], dtype=tf.float32,
+    layer_7 = tf.Variable(tf.truncated_normal([middle_shape, 1], dtype=tf.float32,
                                               stddev=1e-2, name='layer_7'))
-    biases_7 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[4096],
+    biases_7 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[1],
                                        name='biases_7'))
-    layer_8 = tf.Variable(tf.truncated_normal([4096, N_CLASSES], dtype=tf.float32,
+    layer_8 = tf.Variable(tf.truncated_normal([1, N_CLASSES], dtype=tf.float32,
                                               stddev=1e-2, name='layer_8'))
     biases_8 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[N_CLASSES],
                                        name="biases_8"))                                              
@@ -136,9 +136,9 @@ with graph.as_default():
                               padding='SAME', name='conv_5')
         max_pool_5 = tf.nn.max_pool(conv_5, [1,2,2,1], [1,2,2,1], 
                                     padding='SAME',name='max_pool_5')  
-#        pool_5_shape = max_pool_5.get_shape().as_list()
+        pool_5_shape = max_pool_5.get_shape().as_list()[0]
         
-        reshape_max_pool_5 = tf.reshape(max_pool_5,[BATCH_SIZE, middle_shape])
+        reshape_max_pool_5 = tf.reshape(max_pool_5,[-1, pool_5_shape])
         
         matmul_6 = tf.matmul(reshape_max_pool_5, layer_6)
         
