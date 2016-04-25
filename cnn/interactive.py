@@ -32,7 +32,8 @@ data = DataSet(workspace.train_pkl, workspace.test_pkl,
               workspace.valid_pkl, workspace.class_pkl,
               img_shape=(256,256,3))  
 NUM_CORES=4
-BATCH_SIZE = 128
+MESSAGE_EVERY = 1
+BATCH_SIZE = 256
 N_CLASSES = data.n_classes
 train_dat_size = (BATCH_SIZE, 256, 256, 3)
 train_lab_size = (BATCH_SIZE, 252)
@@ -154,7 +155,6 @@ with graph.as_default():
         
     logits = model(train_data_placeholder)
     
-    #cross entropy 
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, train_labels_placeholder))
     optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001).minimize(loss)
     
@@ -197,12 +197,12 @@ with tf.device("/cpu:0"):
                 performance_data[i]['valid accuracy'] = valid_accuracy
                 
                 
-#                if (i+1) % 10 == 0:
-                print "\n","*"*50
-                print 'Minibatch loss at step {0}: {1:0.2f}'.format(i+1, sess_loss.mean())
-                print 'Minibatch accuracy: {0:0.2%}'.format(minibatch_accuracy)
-                print "Valid accuracy: {0:0.2%}".format(valid_accuracy)
-                print 'Minibatch time: {0:0.0f} secs'.format(time.time() - start)
+                if (i+1) % MESSAGE_EVERY == 0:
+                    print "\n","*"*50
+                    print 'Minibatch loss at step {0}: {1:0.2f}'.format(i+1, sess_loss.mean())
+                    print 'Minibatch accuracy: {0:0.2%}'.format(minibatch_accuracy)
+                    print "Valid accuracy: {0:0.2%}".format(valid_accuracy)
+                    print 'Minibatch time: {0:0.0f} secs'.format(time.time() - start)
             print "\n","*"*50
             print "\n","*"*50
             print 'Test accuracy: %.1f%%' % accuracy(test_prediction.eval(), test_labels)
