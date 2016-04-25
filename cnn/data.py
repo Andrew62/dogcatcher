@@ -55,11 +55,11 @@ class DataSet(object):
         batch_data = np.zeros(shape=batch_shape, dtype=np.float32)
         batch_labels = np.zeros(shape=(batch_size,len(self.classes)), dtype=np.float32)
         for i in range(batch_size):
-            idx = self.tracker[name]['idx'] + i
+            idx = self.tracker[name]['idx'] + 1
             row = self.tracker[name]['data'][idx, :]
             img = imread(row[1])
             label = self.encoder.encode(row[0])
-            batch_data[i,:,:,:] = img
+            batch_data[i,:,:,:] = img.astype(np.float32)
             batch_labels[i,:] = label
         self.tracker[name]['idx'] += batch_size
         normed = (batch_data - np.mean(batch_data))/(np.std(batch_data))
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     print "Complete in {0:0.2f} seconds".format(elapsed)
     print "Average batch load {0:0.4f}".format(elapsed/(n_iter*1.))
     print dat.encoder.decode(lab[1,:], 1)
-    plt.imshow(train[1,:,:,:])
-    plt.show()
+#    plt.imshow(train[1,:,:,:])
+#    plt.show()
 
     
