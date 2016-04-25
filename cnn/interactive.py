@@ -11,6 +11,7 @@ import os
 import time
 import shutil
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 from data import DataSet
 from config import workspace
@@ -106,7 +107,7 @@ with graph.as_default():
                                                     bias = 1.0,
                                                     name='norm_1')
         
-        max_pool_1 = tf.nn.max_pool(norm_1, [1,3,3,1],[1,2,2,1], "SAME", 
+        max_pool_1 = tf.nn.max_pool(norm_1, [1,2,2,1],[1,2,2,1], "SAME", 
                                     name='max_pool_1')
                                     
         conv_2 = tf.nn.conv2d(max_pool_1, kernel_2, strides=[1,1,1,1],
@@ -119,7 +120,7 @@ with graph.as_default():
                                                     beta = 0.75, 
                                                     bias = 1.0,name='norm_2')
         
-        max_pool_2 = tf.nn.max_pool(norm_2, [1,3,3,1],[1,2,2,1], "SAME", 
+        max_pool_2 = tf.nn.max_pool(norm_2, [1,2,2,1],[1,2,2,1], "SAME", 
                                     name='max_pool_2')
        
         conv_3 = tf.nn.conv2d(max_pool_2, kernel_3, strides=[1,1,1,1],
@@ -133,7 +134,7 @@ with graph.as_default():
         
         conv_5 = tf.nn.conv2d(hidden_4, kernel_5, strides=[1,1,1,1], 
                               padding='SAME', name='conv_5')
-        max_pool_5 = tf.nn.max_pool(conv_5, [1,3,3,1], [1,2,2,1], 
+        max_pool_5 = tf.nn.max_pool(conv_5, [1,2,2,1], [1,2,2,1], 
                                     padding='SAME',name='max_pool_5')  
 #        pool_5_shape = max_pool_5.get_shape().as_list()
         
@@ -175,8 +176,10 @@ with tf.device("/cpu:0"):
         print "Batch size: {0} images".format(BATCH_SIZE)
         print "Initialized"
         saver = tf.train.Saver(tf.all_variables(), name='dogcatcher', keep_checkpoint_every_n_hours=24)
+        performance_data = {}
         try:
-            for i in xrange(3001):
+            for i in xrange(50001):
+                performance_data[i]={}
                 start = time.time()
                 train_dat, train_lab = data.train_batch(BATCH_SIZE)
                 feed_dict = {train_data_placeholder: train_dat,
@@ -184,12 +187,16 @@ with tf.device("/cpu:0"):
                 _, sess_loss, predictions = sess.run([optimizer, loss, train_prediction], 
                                                      feed_dict=feed_dict)
                                                      
-                                        
+                performance_data[i]['loss']=sess_loss.mean()
+                minibatch_accuracy = accuracy(predictions, train_lab)
+                performance_data[i]['minibatch accuracy']=minibatch_accuracy
+                valid_accuracy = accuracy(valid_prediction.eval(), valid_labels)
+                performance_data[i]['valid accuracy'] = valid_accuracy
 #                if (i+1) % 10 == 0:
                 print "\n","*"*50
                 print 'Minibatch loss at step {0}: {1:0.2f}'.format(i+1, sess_loss.mean())
-                print 'Minibatch accuracy: {0:0.2%}'.format(accuracy(predictions, train_lab))
-                print "Valid accuracy: {0:0.2%}".format(accuracy(valid_prediction.eval(), valid_labels))
+                print 'Minibatch accuracy: {0:0.2%}'.format(minibatch_accuracy)
+                print "Valid accuracy: {0:0.2%}".format(valid_accuracy)
                 print 'Minibatch time: {0:0.0f} secs'.format(time.time() - start)
             print "\n","*"*50
             print "\n","*"*50
@@ -204,6 +211,7 @@ with tf.device("/cpu:0"):
             if os.path.exists(outg):
                 shutil.rmtree(outg)
             tf.train.write_graph(sess.graph_def, outg, "graph.pb")
-
+            performance_frame = pd.DataFrame.from_dict(performance_data, orient='index')
+            performance_frame.to_csv(os.path.join(workspace.model_dir, 'performance.csv'), index=False)
 
     
