@@ -199,7 +199,7 @@ with tf.device("/cpu:0"):
                 
                 if (i+1) % MESSAGE_EVERY == 0:
                     print "\n","*"*50
-                    print 'Minibatch loss at step {0}: {1:0.2f}'.format(i+1, sess_loss.mean())
+                    print 'Minibatch loss at step {0}: {1:0.6f}'.format(i+1, sess_loss.mean())
                     print 'Minibatch accuracy: {0:0.2%}'.format(minibatch_accuracy)
                     print "Valid accuracy: {0:0.2%}".format(valid_accuracy)
                     print 'Minibatch time: {0:0.0f} secs'.format(time.time() - start)
