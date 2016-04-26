@@ -60,7 +60,7 @@ with graph.as_default():
 
     kernel_1 = tf.Variable(tf.truncated_normal([11,11,3,48], dtype=tf.float32,
                                                stddev=1e-2, name='kernel_1'))
-    biases_1 = tf.Variable(tf.constant(0.1, shape=[48], dtype=tf.float32, 
+    biases_1 = tf.Variable(tf.constant(0, shape=[48], dtype=tf.float32, 
                                        name='biases_1'))
     kernel_2 = tf.Variable(tf.truncated_normal([5,5,48,128], dtype=tf.float32,
                                                stddev=1e-2, name='kernel_2'))
@@ -69,7 +69,7 @@ with graph.as_default():
                                                                     
     kernel_3 = tf.Variable(tf.truncated_normal([3, 3, 128, 192], dtype=tf.float32,
                                                stddev=1e-2, name='kernel_3'))
-    biases_3 = tf.Variable(tf.constant(0.1, shape=[192], dtype=tf.float32,
+    biases_3 = tf.Variable(tf.constant(0, shape=[192], dtype=tf.float32,
                                        name='biases_3'))
     kernel_4 = tf.Variable(tf.truncated_normal([3 ,3, 192, 192], dtype=tf.float32,
                                                stddev=1e-2, name='kernel_4'))
@@ -108,7 +108,7 @@ with graph.as_default():
                                                     bias = 1.0,
                                                     name='norm_1')
         
-        max_pool_1 = tf.nn.max_pool(norm_1, [1,2,2,1],[1,2,2,1], "SAME", 
+        max_pool_1 = tf.nn.max_pool(norm_1, [1,3,3,1],[1,2,2,1], "SAME", 
                                     name='max_pool_1')
                                     
         conv_2 = tf.nn.conv2d(max_pool_1, kernel_2, strides=[1,1,1,1],
@@ -121,7 +121,7 @@ with graph.as_default():
                                                     beta = 0.75, 
                                                     bias = 1.0,name='norm_2')
         
-        max_pool_2 = tf.nn.max_pool(norm_2, [1,2,2,1],[1,2,2,1], "SAME", 
+        max_pool_2 = tf.nn.max_pool(norm_2, [1,3,3,1],[1,2,2,1], "SAME", 
                                     name='max_pool_2')
        
         conv_3 = tf.nn.conv2d(max_pool_2, kernel_3, strides=[1,1,1,1],
@@ -135,7 +135,7 @@ with graph.as_default():
         
         conv_5 = tf.nn.conv2d(hidden_4, kernel_5, strides=[1,1,1,1], 
                               padding='SAME', name='conv_5')
-        max_pool_5 = tf.nn.max_pool(conv_5, [1,2,2,1], [1,2,2,1], 
+        max_pool_5 = tf.nn.max_pool(conv_5, [1,3,3,1], [1,2,2,1], 
                                     padding='SAME',name='max_pool_5')  
 #        pool_5_shape = max_pool_5.get_shape().as_list()[0]
         
@@ -203,6 +203,7 @@ with tf.device("/cpu:0"):
                     print 'Minibatch accuracy: {0:0.2%}'.format(minibatch_accuracy)
                     print "Valid accuracy: {0:0.2%}".format(valid_accuracy)
                     print 'Minibatch time: {0:0.0f} secs'.format(time.time() - start)
+                    print time.ctime()
             print "\n","*"*50
             print "\n","*"*50
             print 'Test accuracy: %.1f%%' % accuracy(test_prediction.eval(), test_labels)
