@@ -156,7 +156,7 @@ with graph.as_default():
     logits = model(train_data_placeholder)
     
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, train_labels_placeholder))
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001).minimize(loss)
+    optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
     
 
     
