@@ -60,7 +60,8 @@ class DataSet(object):
             img = imread(row[1])
             label = self.encoder.encode(row[0])
             try:
-                batch_data[i,:,:,:] = img
+                mean_subtract = img - img.mean()
+                batch_data[i,:,:,:] = mean_subtract
             except TypeError:
                 print row[1]
                 raise Exception("Image is a {0}".format(img.shape))
@@ -103,7 +104,12 @@ if __name__ == "__main__":
     print "Complete in {0:0.2f} seconds".format(elapsed)
     print "Average batch load {0:0.4f}".format(elapsed/(n_iter*1.))
     print dat.encoder.decode(lab[1,:], 1)
+    
+    hist, bins = np.histogram(train, bins=50)
+    width = .7 * (bins[1] - bins[0])
+    center = (bins[:-1] + bins[1:])/2
+    plt.bar(center, hist, align='center', width=width)
 #    plt.imshow(train[1,:,:,:])
-#    plt.show()
+    plt.show()
 
     
