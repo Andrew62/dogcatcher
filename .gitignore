@@ -1,0 +1,9 @@
+#files to ignore
+*.pyc
+config.py
+docs/
+pickles/
+processed_data/
+raw_data/
+models/
+collection_scripts_p3/
