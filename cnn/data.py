@@ -27,7 +27,7 @@ class DataSet(object):
 
     def pkl_load(self, fp):
         with open(fp, 'rb') as infile:
-            return pickle.load(infile)
+            return np.random.permutation(pickle.load(infile))
             
     @property
     def n_classes(self):
@@ -105,11 +105,11 @@ if __name__ == "__main__":
     print "Average batch load {0:0.4f}".format(elapsed/(n_iter*1.))
     print dat.encoder.decode(lab[1,:], 1)
     
-    hist, bins = np.histogram(train, bins=50)
+    hist, bins = np.histogram(train, bins=100)
     width = .7 * (bins[1] - bins[0])
     center = (bins[:-1] + bins[1:])/2
-    plt.bar(center, hist, align='center', width=width)
-#    plt.imshow(train[1,:,:,:])
+#    plt.bar(center, hist, align='center', width=width)
+    plt.imshow(train[1,:,:,:])
     plt.show()
 
     
