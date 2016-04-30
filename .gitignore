@@ -7,7 +7,10 @@ processed_data/
 raw_data/
 models/
 collection_scripts_p3/
+<<<<<<< HEAD
 .AppleDouble/
 .DS_Store
 data_formatting_scripts/.DS_Store
 util/
+=======
+>>>>>>> 722ca5d18a9ebfd75c81979cb3d5f174638e82c4
