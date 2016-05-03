@@ -10,6 +10,7 @@ github: Andrew62
 import os
 import time
 import shutil
+import pickle
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -26,13 +27,16 @@ def model_name(now):
     
 def accuracy(predictions, labels):
     return (np.sum(np.argmax(predictions, 1) == np.argmax(labels, 1))*1.)/predictions.shape[0]
-       
+
+def pkl_dump(obj, fp):
+    with open(fp, 'wb') as target:
+        pickle.dump(obj, target)
 
 data = DataSet(workspace.train_pkl, workspace.test_pkl, 
               workspace.valid_pkl, workspace.class_pkl,
               img_shape=(256,256,3))  
 NUM_CORES=4
-MESSAGE_EVERY = 1
+MESSAGE_EVERY = 100
 BATCH_SIZE = 256
 N_CLASSES = data.n_classes
 train_dat_size = (BATCH_SIZE, 256, 256, 3)
@@ -204,6 +208,8 @@ with tf.device("/cpu:0"):
                     print "Valid accuracy: {0:0.2%}".format(valid_accuracy)
                     print 'Minibatch time: {0:0.0f} secs'.format(time.time() - start)
                     print time.ctime()
+                if (i+1) % 5000:
+                    saver.save(sess, os.path.join(workspace.model_dir, model_name(datetime.now())))
             print "\n","*"*50
             print "\n","*"*50
             print 'Test accuracy: %.1f%%' % accuracy(test_prediction.eval(), test_labels)
@@ -220,5 +226,7 @@ with tf.device("/cpu:0"):
             performance_frame = pd.DataFrame.from_dict(performance_data, orient='index')
             performance_frame.to_csv(os.path.join(workspace.model_dir, 'performance.csv'), 
                                      index=False)
-
+            #Probably want to separate this encoder out from the data class
+            onehot = data.encoder
+            pkl_dump(onehot, os.path.join(workspace.model_dir, "encoder.py"))
     
