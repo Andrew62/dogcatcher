@@ -4,6 +4,15 @@ Created on Sun Apr  3 12:46:58 2016
 
 @author: Andrew
 github: Andrew62
+
+This class is designed load image data from disk when 
+the batch methods are called saving memory but increasing
+batch load time. The pickle files passed to the object 
+are simply tuples of (label, file-path). The class 
+keeps track of the index for each data subset so it knows
+when to reshuffle. Testing the load times below on a 4 core 
+laptop with 8gb ram and ssd, a batch of 256 images loads 
+in 25.3 seconds.
 """
 
 import pickle
@@ -97,7 +106,7 @@ if __name__ == "__main__":
     start = time.time()
     n_iter = 10
     for i in range(n_iter):
-        train, lab = dat.test_batch(25)
+        train, lab = dat.test_batch(256)
         if (i+1)%100 == 0:
             print i+1
     elapsed = time.time() - start
