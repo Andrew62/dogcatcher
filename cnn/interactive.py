@@ -201,16 +201,17 @@ with tf.device("/cpu:0"):
                 _, sess_loss, predictions = sess.run([optimizer, loss, train_prediction], 
                                                      feed_dict=feed_dict)
                 
-                minibatch_accuracy = accuracy(predictions, train_lab)   
-                valid_accuracy = accuracy(valid_prediction.eval(), valid_labels)
-                
-                #collecting data for visualization later                                  
-                performance_data[i]['loss']=sess_loss.mean()
-                performance_data[i]['minibatch accuracy']=minibatch_accuracy
-                performance_data[i]['valid accuracy'] = valid_accuracy
-                
                 
                 if (i+1) % MESSAGE_EVERY == 0:
+                    minibatch_accuracy = accuracy(predictions, train_lab)   
+                    valid_accuracy = accuracy(valid_prediction.eval(), valid_labels)
+                    
+                    #collecting data for visualization later. Could prob use 
+                    #tensorboard                                 
+                    performance_data[i]['loss']=sess_loss.mean()
+                    performance_data[i]['minibatch accuracy']=minibatch_accuracy
+                    performance_data[i]['valid accuracy'] = valid_accuracy
+                    
                     print "\n","*"*50
                     print 'Minibatch loss at step {0}: {1:0.6f}'.format(i+1, sess_loss.mean())
                     print 'Minibatch accuracy: {0:0.2%}'.format(minibatch_accuracy)
