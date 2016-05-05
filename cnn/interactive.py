@@ -125,7 +125,8 @@ with graph.as_default():
                                                     depth_radius = 2,
                                                     alpha = 2e-05, 
                                                     beta = 0.75, 
-                                                    bias = 1.0,name='norm_2')
+                                                    bias = 1.0,
+                                                    name='norm_2')
         
         max_pool_2 = tf.nn.max_pool(norm_2, [1,3,3,1],[1,2,2,1], "SAME", 
                                     name='max_pool_2')
