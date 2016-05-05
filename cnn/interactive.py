@@ -51,6 +51,8 @@ with graph.as_default():
     
     tf_test_data = tf.constant(test_data, name="tf_test_data", 
                                dtype=tf.float32, shape=train_dat_size)
+                               
+    keep_prob = tf.constant(0.5, name="dropout", dtype=tf.float32)
     
     valid_data_constant = tf.constant(valid_data, name="valid_data_constant", 
                                       dtype=tf.float32, shape=train_dat_size)
@@ -99,7 +101,7 @@ with graph.as_default():
     biases_8 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[N_CLASSES],
                                        name="biases_8"))                                              
     
-    def model(data, train=True):             
+    def model(data, train=False):             
         conv_1 = tf.nn.conv2d(data, kernel_1, [1,4,4,1], 
                               padding='SAME', name='convolution_1')
     
@@ -149,15 +151,21 @@ with graph.as_default():
         
         hidden_6 = tf.nn.relu(matmul_6+biases_6, name='hidden_6')
         
+        if train is True:
+            hidden_6 = tf.nn.dropout(hidden_6, keep_prob)
+        
         matmul_7 = tf.matmul(hidden_6, layer_7)
         
         hidden_7 = tf.nn.relu(matmul_7+biases_7, name='hidden_7')
+        
+        if train is True:
+            hidden_7 = tf.nn.dropout(hidden_7, keep_prob)
         
         matmul_8 = tf.matmul(hidden_7, layer_8)
         
         return tf.nn.relu(matmul_8+biases_8, name="logits")
         
-    logits = model(train_data_placeholder)
+    logits = model(train_data_placeholder, train=True)
     
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, train_labels_placeholder))
     optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
