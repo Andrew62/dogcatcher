@@ -213,7 +213,7 @@ with tf.device("/cpu:0"):
             print "\n","*"*50
             print "\n","*"*50
             print 'Test accuracy: %.1f%%' % accuracy(test_prediction.eval(), test_labels)
-        except tf.errors.InvalidArgumentError as e:
+        except Exception as e:
             print e
             print "Failed after {0} steps".format(i)
         
