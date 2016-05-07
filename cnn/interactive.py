@@ -18,6 +18,13 @@ from data import DataSet
 from config import workspace
 from datetime import datetime
 
+#need tensorflow_serving to run model
+#intall http://tensorflow.github.io/serving/setup
+#see http://tensorflow.github.io/serving/serving_basic
+#need to download bazel
+#https://github.com/tensorflow/serving/blob/master/tensorflow_serving/g3doc/setup.md
+#from tensorflow_serving.session_bundle import exporter
+
               
 def model_name(now):
     year = now.year
