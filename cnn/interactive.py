@@ -238,5 +238,5 @@ with tf.device("/cpu:0"):
                                      index=False)
             #Probably want to separate this encoder out from the data class
             onehot = data.encoder
-            pkl_dump(onehot, os.path.join(workspace.model_dir, "encoder.py"))
+            pkl_dump(onehot, os.path.join(workspace.model_dir, "encoder.pkl"))
     
