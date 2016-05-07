@@ -202,6 +202,9 @@ with tf.device("/cpu:0"):
             for i in xrange(50001):
                 performance_data[i]={}
                 start = time.time()
+                #make the data object return raw labels
+                #make the encoder encode all labels separate from 
+                #the data loader
                 train_dat, train_lab = data.train_batch(BATCH_SIZE)
                 feed_dict = {train_data_placeholder: train_dat,
                              train_labels_placeholder: train_lab}
