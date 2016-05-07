@@ -4,6 +4,9 @@ Created on Sun Apr  3 11:51:23 2016
 
 @author: Andrew
 github: Andrew62
+
+Change to accept a label array and return the encoding
+so it will be separate from the data loader
 """
 
 import numpy as np
