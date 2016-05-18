@@ -17,7 +17,6 @@ in 25.3 seconds.
 
 import pickle
 import numpy as np
-from encoder import OneHot
 from scipy.misc import imread
 
 
