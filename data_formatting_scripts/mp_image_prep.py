@@ -88,7 +88,7 @@ if __name__ == "__main__":
     print "makeing train, test, validation split..."
     img_data_array = format_array(classes, new_folders)
     
-    data_split_percentage = {'train': 0.8, 'test': 0.1, 'valid': 0.1}
+    data_split_percentage = {'train': 0.9, 'test': 0.05, 'valid': 0.05}
     
     data_splits = split_data(img_data_array, data_split_percentage)
     
