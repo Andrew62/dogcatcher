@@ -18,10 +18,6 @@ class OneHot(object):
         self.n_classes = len(self.classes)
 
     @property
-    def vector_template(self):
-        return np.zeros(shape=(1,self.n_classes), dtype=np.float32)
-        
-    @property
     def class_map(self):
         cls_map = {}
         for i,cls in enumerate(self.classes):
@@ -36,21 +32,21 @@ class OneHot(object):
         return rev_class_map
         
 
-    def decode(self, arr, top=10):
+    def decode(self, arr, top=5):
         decoded = {}
         for i in range(top):
             idx = np.argmax(arr)
             decoded[i+1] = {'score': arr[idx], 'label':self.reverse_class_map[idx]}
             arr[idx] = 0
         return decoded
-            
-        
     
-    def encode(self, category):
-        if category not in self.class_map.keys():
-            raise OneHotError("{0} outside of original classes!".format(category))
-        vec = self.vector_template.copy()
-        vec[0, self.class_map[category]] = 1
+    def encode(self, arr):
+        rows = len(arr)
+        vec = np.zeros(shape=(rows, self.n_classes), dtype=np.float32)
+        for i, category in enumerate(arr):
+            if category not in self.class_map.keys():
+                raise OneHotError("{0} outside of original classes!".format(category))
+            vec[i, self.class_map[category]] = 1
         return vec
         
 

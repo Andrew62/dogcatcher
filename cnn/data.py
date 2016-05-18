@@ -41,10 +41,6 @@ class DataSet(object):
     @property
     def n_classes(self):
         return len(self.classes)
-                
-    @property
-    def encoder(self):
-        return OneHot(self.classes)
         
     def batch(self, batch_size, name='train'):
         """
@@ -62,19 +58,13 @@ class DataSet(object):
             
         batch_shape = (batch_size, self.img_shape[0], self.img_shape[1], self.img_shape[2])
         batch_data = np.zeros(shape=batch_shape, dtype=np.float32)
-        batch_labels = np.zeros(shape=(batch_size,len(self.classes)), dtype=np.float32)
+        batch_labels = []
         for i in range(batch_size):
             idx = self.tracker[name]['idx'] + i
             row = self.tracker[name]['data'][idx, :]
             img = imread(row[1])
-            label = self.encoder.encode(row[0])
-            try:
-                mean_subtract = img - img.mean()
-                batch_data[i,:,:,:] = mean_subtract
-            except TypeError:
-                print row[1]
-                raise Exception("Image is a {0}".format(img.shape))
-            batch_labels[i,:] = label
+            batch_data[i,:,:,:] = img - img.mean()
+            batch_labels.append(row[0])
         self.tracker[name]['idx'] += batch_size
         normed = (batch_data - np.mean(batch_data))/(np.std(batch_data))
         return normed, batch_labels
@@ -93,32 +83,5 @@ class DataSet(object):
         
         
         
-if __name__ == "__main__":
-    import time
-    from config import workspace
-    import matplotlib.pyplot as plt
-    
-    dat = DataSet(workspace.train_pkl, workspace.test_pkl, workspace.valid_pkl,
-                  workspace.class_pkl, img_shape=(256,256,3))
-    print len(dat.classes)
-    for item in ['train', 'test', 'valid']:
-        print item, len(np.unique(dat.tracker[item]['data'][:,1]))
-    start = time.time()
-    n_iter = 10
-    for i in range(n_iter):
-        train, lab = dat.test_batch(256)
-        if (i+1)%100 == 0:
-            print i+1
-    elapsed = time.time() - start
-    print "Complete in {0:0.2f} seconds".format(elapsed)
-    print "Average batch load {0:0.4f}".format(elapsed/(n_iter*1.))
-    print dat.encoder.decode(lab[1,:], 1)
-    
-    hist, bins = np.histogram(train, bins=100)
-    width = .7 * (bins[1] - bins[0])
-    center = (bins[:-1] + bins[1:])/2
-#    plt.bar(center, hist, align='center', width=width)
-    plt.imshow(train[1,:,:,:])
-    plt.show()
 
     
