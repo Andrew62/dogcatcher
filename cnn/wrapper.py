@@ -1,3 +1,7 @@
+"""
+This file wraps Tensorflow objects for better readability
+"""
+
 import tensorflow as tf
 
 
@@ -17,3 +21,9 @@ def norm(input, name):
 
 def max_pool(input, name):
     return tf.nn.max_pool(input, [1, 3, 3, 1], [1, 2, 2, 1], "SAME", name=name)
+
+def placeholder(name):
+    return tf.placeholder(dtype=tf.float32, name=name)
+
+def constant(value, name, shape=None):
+    return tf.constant(value, name=name, dtype=tf.float32, shape=shape)
