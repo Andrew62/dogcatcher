@@ -1,4 +1,6 @@
 
+
+import csv
 import pickle
 import numpy as np
 
@@ -16,3 +18,12 @@ def accuracy(predictions, labels):
 def pkl_dump(obj, fp):
     with open(fp, 'wb') as target:
         pickle.dump(obj, target)
+
+def write_csv(in_dict, fp):
+    fields = ['iteration', 'loss', 'minibatch accuracy', 'valid accuracy']
+    with open(fp, 'wb') as target:
+        writer = csv.DictWriter(target, fields)
+        writer.writeheader()
+        for k, values in in_dict.items():
+            values['iteration'] = k
+            writer.writerow(values)
