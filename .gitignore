@@ -11,3 +11,4 @@ collection_scripts_p3/
 .DS_Store
 data_formatting_scripts/.DS_Store
 util/
+.idea/
