@@ -11,10 +11,12 @@ import os
 import time
 import util
 import shutil
-from ..util import msg
 from wrapper import *
 import tensorflow as tf
 from data import DataSet
+#optional import. Only used for notifications. Will not be included in 
+#the git repo
+from msg import send_mail
 from encoder import OneHot
 from config import workspace
 from datetime import datetime
@@ -195,13 +197,16 @@ with tf.Session(graph=graph, config=config) as sess:
                 performance_data[i]['loss']=sess_loss.mean()
                 performance_data[i]['minibatch accuracy']=minibatch_accuracy
                 performance_data[i]['valid accuracy'] = valid_accuracy
-
-                print "\n","*"*50
-                print 'Minibatch loss at step {0}: {1:0.6f}'.format(i+1, sess_loss.mean())
-                print 'Minibatch accuracy: {0:0.2%}'.format(minibatch_accuracy)
-                print "Valid accuracy: {0:0.2%}".format(valid_accuracy)
-                print 'Minibatch time: {0:0.0f} secs'.format(time.time() - start)
-                print time.ctime()
+                subj = 'Minibatch accuracy: {0:0.2%}'.format(minibatch_accuracy)
+                msg = "\n"+"*"*50
+                msg += '\nMinibatch loss at step {0}: {1:0.6f}\n'.format(i+1, sess_loss.mean())
+                msg += subj + '\n'
+                msg += "Valid accuracy: {0:0.2%}\n".format(valid_accuracy)
+                msg += 'Minibatch time: {0:0.0f} secs\n'.format(time.time() - start)
+                msg += time.ctime()
+                print msg
+                #opional. You need to implement your own function or delete this
+                send_mail("dogcatcher update: " + subj, msg)
             if (i+1) % SAVE_ITER:
                 saver.save(sess, os.path.join(workspace.model_dir, util.model_name(datetime.now())))
         print "\n","*"*50
