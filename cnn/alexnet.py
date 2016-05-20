@@ -11,6 +11,7 @@ import os
 import time
 import util
 import shutil
+from ..util import msg
 from wrapper import *
 import tensorflow as tf
 from data import DataSet
@@ -38,7 +39,7 @@ SAVE_ITER = 1000
 NUM_CORES=4
 MESSAGE_EVERY = 50
 TRAIN_BATCH_SIZE = 256
-TEST_BATCH_SIZE = 10000
+TEST_BATCH_SIZE = 1000
 VALID_BATCH_SIZE = 1000
 N_CLASSES = data.n_classes
 
@@ -185,7 +186,7 @@ with tf.Session(graph=graph, config=config) as sess:
                                                  feed_dict=feed_dict)
 
 
-            if (i+1) % MESSAGE_EVERY == 0:
+            if ((i+1) % MESSAGE_EVERY == 0) or (i==0):
                 minibatch_accuracy = util.accuracy(predictions, train_lab_vec)
                 valid_accuracy = util.accuracy(valid_prediction.eval(), valid_lab_vec)
 
