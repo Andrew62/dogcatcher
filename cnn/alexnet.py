@@ -14,8 +14,6 @@ import shutil
 from wrapper import *
 import tensorflow as tf
 from data import DataSet
-#optional import. Only used for notifications. Will not be included in 
-#the git repo
 from msg import send_mail
 from encoder import OneHot
 from config import workspace
