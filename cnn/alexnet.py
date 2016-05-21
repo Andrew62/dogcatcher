@@ -38,6 +38,7 @@ ITERATIONS=50001
 SAVE_ITER = 1000
 NUM_CORES=4
 MESSAGE_EVERY = 50
+EMAIL_EVERY = MESSAGE_EVERY * 10
 TRAIN_BATCH_SIZE = 256
 TEST_BATCH_SIZE = 1000
 VALID_BATCH_SIZE = 1000
@@ -203,9 +204,9 @@ with tf.Session(graph=graph, config=config) as sess:
                 msg += 'Minibatch time: {0:0.0f} secs\n'.format(time.time() - start)
                 msg += time.ctime()
                 print msg
-                #opional. You need to implement your own function or delete this
-                send_mail("dogcatcher update: " + subj, msg)
-            if (i+1) % SAVE_ITER:
+                if ((i+1) % EMAIL_EVERY) == 0:
+                    send_mail("dogcatcher update: " + subj, msg)
+            if ((i+1) % SAVE_ITER) == 0:
                 saver.save(sess, os.path.join(workspace.model_dir, util.model_name(datetime.now())))
                 send_mail("Successful checkpoint", "Iteration {0}".format(i+1))
         msg = "\n" + "*"*50
