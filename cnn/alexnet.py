@@ -162,7 +162,7 @@ with graph.as_default():
 config = tf.ConfigProto(inter_op_parallelism_threads=NUM_CORES,
                         intra_op_parallelism_threads=NUM_CORES)
 
-checkpoint = None #util.get_last_checkpoint(workspace.model_dir)
+checkpoint = util.get_last_checkpoint(workspace.model_dir)
 
 with tf.Session(graph=graph, config=config) as sess:
     tf.initialize_all_variables().run()
