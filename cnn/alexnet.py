@@ -34,14 +34,15 @@ data = DataSet(workspace.train_pkl, workspace.test_pkl,
 
 onehot = OneHot(data.classes)
 
-ITERATIONS=50001
-SAVE_ITER = 1000
+ITERATIONS=2#50001
+SAVE_ITER = 1#1000
 NUM_CORES=4
-MESSAGE_EVERY = 50
-EMAIL_EVERY = MESSAGE_EVERY * 20
-TRAIN_BATCH_SIZE = 256
-TEST_BATCH_SIZE = 1000
-VALID_BATCH_SIZE = 1000
+MESSAGE_EVERY = 1#50
+EMAILING = False
+EMAIL_EVERY = 1#MESSAGE_EVERY * 20
+TRAIN_BATCH_SIZE = 10#256
+TEST_BATCH_SIZE = 10#1000
+VALID_BATCH_SIZE = 10#1000
 N_CLASSES = data.n_classes
 
 
@@ -160,15 +161,24 @@ with graph.as_default():
 
 config = tf.ConfigProto(inter_op_parallelism_threads=NUM_CORES,
                         intra_op_parallelism_threads=NUM_CORES)
-                        
+
+
+
+
+checkpoint = util.get_last_checkpoint(workspace.model_dir)
 
 with tf.Session(graph=graph, config=config) as sess:
     tf.initialize_all_variables().run()
+    saver = tf.train.Saver()
+    if checkpoint is not None:
+        print "Checkpoint {0} restored!".format(os.path.basename(checkpoint))
+        saver.restore(sess, checkpoint)
+    else:
+        print "Initialized"
+
     print "\n","*"*50
     print "Batch size: {0} images".format(TRAIN_BATCH_SIZE)
-    print "Initialized"
-    saver = tf.train.Saver(tf.all_variables(), name='dogcatcher',
-                           keep_checkpoint_every_n_hours=24)
+
     performance_data = {}
     try:
         for i in xrange(ITERATIONS):
@@ -204,11 +214,12 @@ with tf.Session(graph=graph, config=config) as sess:
                 msg += 'Minibatch time: {0:0.0f} secs\n'.format(time.time() - start)
                 msg += time.ctime()
                 print msg
-                if ((i+1) % EMAIL_EVERY) == 0:
+                if (((i+1) % EMAIL_EVERY) == 0) and (EMAILING is True):
                     send_mail("dogcatcher update: " + subj, msg)
             if ((i+1) % SAVE_ITER) == 0:
                 saver.save(sess, os.path.join(workspace.model_dir, util.model_name(datetime.now())))
-                send_mail("Successful checkpoint", "Iteration {0}".format(i+1))
+                if EMAILING is True:
+                    send_mail("Successful checkpoint", "Iteration {0}".format(i+1))
         msg = "\n" + "*"*50
         msg += "\n" + "*"*50
         msg += "\nTest accuracy: {0:0.2%}".format(util.accuracy(test_prediction.eval(), test_lab_vec))
@@ -229,6 +240,7 @@ with tf.Session(graph=graph, config=config) as sess:
 
         util.write_csv(performance_data, os.path.join(workspace.model_dir, 'performance.csv'))
         util.pkl_dump(onehot, os.path.join(workspace.model_dir, "encoder.pkl"))
-        send_mail(subj, msg)
+        if EMAILING is True:
+            send_mail(subj, msg)
         
 
