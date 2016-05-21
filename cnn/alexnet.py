@@ -34,15 +34,15 @@ data = DataSet(workspace.train_pkl, workspace.test_pkl,
 
 onehot = OneHot(data.classes)
 
-ITERATIONS=2#50001
-SAVE_ITER = 1#1000
+ITERATIONS=50001
+SAVE_ITER = 1000
 NUM_CORES=4
-MESSAGE_EVERY = 1#50
-EMAILING = False
-EMAIL_EVERY = 1#MESSAGE_EVERY * 20
-TRAIN_BATCH_SIZE = 10#256
-TEST_BATCH_SIZE = 10#1000
-VALID_BATCH_SIZE = 10#1000
+MESSAGE_EVERY = 50
+EMAILING = True
+EMAIL_EVERY = MESSAGE_EVERY * 20
+TRAIN_BATCH_SIZE = 256
+TEST_BATCH_SIZE = 1000
+VALID_BATCH_SIZE = 1000
 N_CLASSES = data.n_classes
 
 
@@ -244,3 +244,4 @@ with tf.Session(graph=graph, config=config) as sess:
             send_mail(subj, msg)
         
 
+h
