@@ -32,10 +32,13 @@ class MailMe(object):
         except Exception as e:
             raise e
 
-def send_mail(subj, msg):        
-    username = workspace.from_email 
-    password = workspace.password  
-    mailer = MailMe(username, password)
-    mailer.send_message(workspace.to_email, subj, msg)
+def send_mail(subj, msg):   
+    try:     
+        username = workspace.from_email 
+        password = workspace.password  
+        mailer = MailMe(username, password)
+        mailer.send_message(workspace.to_email, subj, msg)
+    except Exception as e:
+        print e
 
    
