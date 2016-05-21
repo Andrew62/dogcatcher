@@ -38,7 +38,7 @@ ITERATIONS=50001
 SAVE_ITER = 1000
 NUM_CORES=4
 MESSAGE_EVERY = 50
-EMAILING = True
+EMAILING = False
 EMAIL_EVERY = MESSAGE_EVERY * 20
 TRAIN_BATCH_SIZE = 256
 TEST_BATCH_SIZE = 1000
@@ -162,10 +162,7 @@ with graph.as_default():
 config = tf.ConfigProto(inter_op_parallelism_threads=NUM_CORES,
                         intra_op_parallelism_threads=NUM_CORES)
 
-
-
-
-checkpoint = util.get_last_checkpoint(workspace.model_dir)
+checkpoint = None #util.get_last_checkpoint(workspace.model_dir)
 
 with tf.Session(graph=graph, config=config) as sess:
     tf.initialize_all_variables().run()
@@ -242,6 +239,3 @@ with tf.Session(graph=graph, config=config) as sess:
         util.pkl_dump(onehot, os.path.join(workspace.model_dir, "encoder.pkl"))
         if EMAILING is True:
             send_mail(subj, msg)
-        
-
-h
