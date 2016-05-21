@@ -207,12 +207,17 @@ with tf.Session(graph=graph, config=config) as sess:
                 send_mail("dogcatcher update: " + subj, msg)
             if (i+1) % SAVE_ITER:
                 saver.save(sess, os.path.join(workspace.model_dir, util.model_name(datetime.now())))
-        print "\n","*"*50
-        print "\n","*"*50
-        print "Test accuracy: {0:0.2%}".format(util.accuracy(test_prediction.eval(), test_lab_vec))
+                send_mail("Successful checkpoint", "Iteration {0}".format(i+1))
+        msg = "\n" + "*"*50
+        msg += "\n" + "*"*50
+        msg += "\nTest accuracy: {0:0.2%}".format(util.accuracy(test_prediction.eval(), test_lab_vec))
+        subj = "Training complete!"
+        print msg
     except Exception as e:
         print e
-        print "Failed after {0} steps".format(i)
+        subj = "DOGCATCHER STOPPED!"
+        msg = "Failed after {0} steps".format(i)
+        print msg
 
     finally:
         saver.save(sess, os.path.join(workspace.model_dir, util.model_name(datetime.now())))
@@ -223,4 +228,6 @@ with tf.Session(graph=graph, config=config) as sess:
 
         util.write_csv(performance_data, os.path.join(workspace.model_dir, 'performance.csv'))
         util.pkl_dump(onehot, os.path.join(workspace.model_dir, "encoder.pkl"))
+        send_mail(subj, msg)
+        
 
