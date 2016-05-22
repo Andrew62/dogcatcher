@@ -44,5 +44,5 @@ def get_last_checkpoint(model_dir):
         if created_time > most_recent_time:
             most_recent_time = created_time
             most_recent_ckpt = ckpt_path
-    return ckpt_path
+    return most_recent_ckpt
 
