@@ -167,8 +167,9 @@ checkpoint = util.get_last_checkpoint(workspace.model_dir)
 with tf.Session(graph=graph, config=config) as sess:
     tf.initialize_all_variables().run()
     saver = tf.train.Saver()
+    print "\n" + "*"*50
     if checkpoint is not None:
-        print "Checkpoint {0} restored!".format(os.path.basename(checkpoint))
+        print "\nCheckpoint {0} restored!".format(os.path.basename(checkpoint))
         saver.restore(sess, checkpoint)
     else:
         print "Initialized"
