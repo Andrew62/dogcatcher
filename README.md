@@ -12,5 +12,5 @@ A tensorflow implementation of AlexNet to recognize dog breeds. For a full list 
 
 ## Metrics
 
-Initial results shows a loss of 15% (85% correct) after 50000 iterations with out dropout. Trianing took 12 days quad-core i5 CPU with 32 GB RAM and SSD running Ubuntu 14.04.
+Initial results shows a loss of 15% (85% correct) after 50000 iterations with out dropout. Trianing took 12 days with a quad-core i5 CPU, 32 GB RAM and SSD running Ubuntu 14.04.
 
