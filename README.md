@@ -2,6 +2,7 @@
 
 A tensorflow implementation of AlexNet to recognize dog breeds. For a full list of dog breed, check out the [AKC](www.akc.org) website. Alexnet is an 8 layer convolution neural network (CNN). This implementation differs slightly from the original in that it uses larger images (256x256 instead of 224x224) and a smaller set of classes (252 instead of 1000). 
 
+Alexnet:
 ![AlexNet Image](http://www.eecs.berkeley.edu/~shhuang/img/alexnet_small.png)
 
 ## Files:
