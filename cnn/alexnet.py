@@ -162,15 +162,16 @@ with graph.as_default():
 config = tf.ConfigProto(inter_op_parallelism_threads=NUM_CORES,
                         intra_op_parallelism_threads=NUM_CORES)
 
-checkpoint = util.get_last_checkpoint(workspace.model_dir)
 
 with tf.Session(graph=graph, config=config) as sess:
-    tf.initialize_all_variables().run()
+#    tf.initialize_all_variables().run()
+    sess.run(tf.initialize_all_variables())
     saver = tf.train.Saver()
     print "\n" + "*"*50
     if checkpoint is not None:
-        print "\nCheckpoint {0} restored!".format(os.path.basename(checkpoint))
-        saver.restore(sess, checkpoint)
+        ckpt = tf.train.get_checkpoint_state(workspace.model_dir)
+        print "\nCheckpoint {0} restored!".format(os.path.basename(ckpt.model_checkpoint_path))
+        saver.restore(sess, ckpt.model_checkpoint_path)
     else:
         print "Initialized"
 

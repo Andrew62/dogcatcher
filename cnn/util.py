@@ -31,6 +31,8 @@ def write_csv(in_dict, fp):
 
 def get_last_checkpoint(model_dir):
     """
+    USING tf implementation instead
+    
     Loads the most recent checkpoint given a model dir. Returns None otherwise
     """
     files = os.listdir(model_dir)
