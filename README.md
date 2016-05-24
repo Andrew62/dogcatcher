@@ -13,4 +13,4 @@ list of dog breed, check out the [AKC](www.akc.org) website. Performance metrics
 
 ## Metrics
 
-Initial results shows a loss of 15% (85% correct) after 50000 iterations. 
+Initial results shows a loss of 15% (85% correct) after 50000 iterations with out dropout. Trianing took 12 days quad-core i5 CPU with 32 GB RAM and SSD running Ubuntu 14.04.
