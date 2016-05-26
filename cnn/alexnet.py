@@ -168,8 +168,8 @@ with tf.Session(graph=graph, config=config) as sess:
     sess.run(tf.initialize_all_variables())
     saver = tf.train.Saver()
     print "\n" + "*"*50
-    if checkpoint is not None:
-        ckpt = tf.train.get_checkpoint_state(workspace.model_dir)
+    ckpt = tf.train.get_checkpoint_state(workspace.model_dir)
+    if ckpt is not None:
         print "\nCheckpoint {0} restored!".format(os.path.basename(ckpt.model_checkpoint_path))
         saver.restore(sess, ckpt.model_checkpoint_path)
     else:
