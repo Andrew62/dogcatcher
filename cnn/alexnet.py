@@ -68,10 +68,10 @@ with graph.as_default():
     middle_shape = 8192
 
     layers = {
-        1 : kernel([11,11,3,48], 'kernel_1'),
-        2 : kernel([5,5,48,128], 'kernel_2'),
+        1 : kernel([11, 11, 3, 48], 'kernel_1'),
+        2 : kernel([5, 5, 48, 128], 'kernel_2'),
         3 : kernel([3, 3, 128, 192], 'kernel_3'),
-        4 : kernel([3 ,3, 192, 192], 'kernel_4'),
+        4 : kernel([3, 3, 192, 192], 'kernel_4'),
         5 : kernel([3, 3, 192, 128], 'kernel_5'),
         6 : kernel([middle_shape, middle_shape], 'layer_6'),
         7 : kernel([middle_shape, middle_shape], 'layer_7'),
