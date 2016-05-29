@@ -13,3 +13,4 @@ data_formatting_scripts/.DS_Store
 util/
 .idea/
 *.whl
+*.pkl
