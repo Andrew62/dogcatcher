@@ -3,6 +3,7 @@ Tensorflow wrapper implemented independent of the alexnet wrapper.
 Any VGG specific support code will go in the VGG folder
 """
 
+import numpy as np
 import pickle as pkl
 import tensorflow as tf
 

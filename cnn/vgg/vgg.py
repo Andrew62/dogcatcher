@@ -11,6 +11,8 @@ from .wrapper import kernel, bias, conv_layer, max_pool, matmul
 class VGG(object):
     def __init__(self, n_classes, middle_shape=4096):
 
+        self.middle_shape = middle_shape
+
         self.layers = {
             1 : kernel([3, 3, 3, 64], 'conv1'),
             2 : kernel([3, 3, 64, 64], 'conv2'),
@@ -85,9 +87,9 @@ class VGG(object):
         conv10 = conv_layer(conv9, self.layers[10], self.biases[10], '10')
         conv11 = conv_layer(conv10, self.layers[11], self.biases[11], '11')
         conv12 = conv_layer(conv11, self.layers[12], self.biases[12], '12')
-        pool3 = max_pool(conv12, 'pool4')
+        pool4 = max_pool(conv12, 'pool4')
 
-        fc6 = tf.reshape(pool3, [1, -1], 'fc6')
+        fc6 = tf.reshape(pool4, [-1, self.middle_shape], 'fc6')
         fc7 = matmul(fc6, self.layers[13], self.biases[13], 'fc8')
         return matmul(fc7, self.layers[14], self.biases[14], 'logtis')
 
