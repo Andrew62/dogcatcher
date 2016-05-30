@@ -60,8 +60,7 @@ valid_data, valid_labels = data.valid_batch(VALID_BATCH_SIZE)
 valid_lab_vec = onehot.encode(valid_labels)
 
 
-config = tf.ConfigProto(inter_op_parallelism_threads=NUM_CORES,
-                        intra_op_parallelism_threads=NUM_CORES)
+config = tf.ConfigProto(inter_op_parallelism_threads=NUM_CORES)
 
 graph = tf.Graph()
 with graph.as_default():

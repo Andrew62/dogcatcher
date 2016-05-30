@@ -60,6 +60,12 @@ def pkl_load(fp):
     with open(fp, 'rb') as infile:
         return pkl.load(infile)
 
+def placeholder(name):
+    return tf.placeholder(dtype=tf.float32, name=name)
+
+def constant(value, name, shape=None):
+    return tf.constant(value, name=name, dtype=tf.float32, shape=shape)
+
 def __make_cls_pkl__():
     import csv
     from config import workspace
