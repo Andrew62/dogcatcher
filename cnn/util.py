@@ -1,4 +1,6 @@
-
+"""
+General utilies for training. 
+"""
 import os
 import csv
 import pickle
