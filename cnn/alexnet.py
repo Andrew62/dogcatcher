@@ -41,8 +41,8 @@ MESSAGE_EVERY = 100
 EMAILING = True
 EMAIL_EVERY = MESSAGE_EVERY * 20
 TRAIN_BATCH_SIZE = 256
-TEST_BATCH_SIZE = 1000
-VALID_BATCH_SIZE = 1000
+TEST_BATCH_SIZE = 400
+VALID_BATCH_SIZE = 400
 N_CLASSES = data.n_classes
 
 
@@ -149,7 +149,7 @@ with graph.as_default():
     
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, train_labels_placeholder))
 
-    optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001).minimize(loss)
     
 
     
@@ -177,6 +177,8 @@ with tf.Session(graph=graph, config=config) as sess:
 
     print "\n","*"*50
     print "Batch size: {0} images".format(TRAIN_BATCH_SIZE)
+    print "Valid size: {0} images".format(VALID_BATCH_SIZE)
+    print "Test size: {0} images".format(TEST_BATCH_SIZE)
 
     performance_data = {}
     try:
