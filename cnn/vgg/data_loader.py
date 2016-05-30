@@ -5,7 +5,7 @@ Author: Andrew
 Github: https://github.com/andrew62
 """
 
-from cnn import util
+import util
 import tensorflow as tf
 
 

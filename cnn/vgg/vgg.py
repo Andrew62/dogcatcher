@@ -5,7 +5,7 @@ from the paper.
 """
 
 import tensorflow as tf
-from cnn.vgg.wrapper import kernel, bias, conv_layer, max_pool, matmul
+from .wrapper import kernel, bias, conv_layer, max_pool, matmul
 
 
 class VGG(object):
