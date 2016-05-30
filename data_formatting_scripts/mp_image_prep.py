@@ -50,7 +50,7 @@ if __name__ == "__main__":
     OUT_DIR = workspace.out_dir
     OUT_CSV = workspace.out_csv
     PROCESSES=12
-    PIXELS=256
+    PIXELS=224
     q = Queue()
     new_folders = []
     processes = []
