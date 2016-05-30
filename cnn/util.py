@@ -21,6 +21,10 @@ def pkl_dump(obj, fp):
     with open(fp, 'wb') as target:
         pickle.dump(obj, target)
 
+def pkl_load(fp):
+    with open(fp, 'rb') as infile:
+        return pickle.load(infile)
+
 def write_csv(in_dict, fp):
     fields = ['iteration', 'loss', 'minibatch accuracy', 'valid accuracy']
     with open(fp, 'wb') as target:

@@ -13,18 +13,19 @@ github: Andrew62
 """
 
 import os
-import time
-import util
 import shutil
-import tensorflow as tf
-from data import DataSet
-from msg import send_mail
-from encoder import OneHot
-from alexnet import  AlxNet
-from config import workspace
+import time
 from datetime import datetime
-from wrapper import constant, placeholder
 
+import tensorflow as tf
+import util
+from config import workspace
+from encoder import OneHot
+from msg import send_mail
+
+from alexnet import  AlxNet
+from cnn.data import DataSet
+from wrapper import constant, placeholder
 
 # need tensorflow_serving to run model
 # intall http://tensorflow.github.io/serving/setup

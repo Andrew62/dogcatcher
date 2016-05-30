@@ -88,7 +88,7 @@ class VGG(object):
         pool3 = max_pool(conv12, 'pool4')
 
         fc6 = tf.reshape(pool3, [-1, 4096], 'fc6')
-        fc7 = matmul(fc6, self.layers[13], biases[13], 'fc8')
+        fc7 = matmul(fc6, self.layers[13], self.biases[13], 'fc8')
         return matmul(fc7, self.layers[14], self.biases[14], 'logtis')
 
         # TODO remove the code below and put in training script
