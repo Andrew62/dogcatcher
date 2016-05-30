@@ -18,10 +18,10 @@ import time
 from datetime import datetime
 
 import tensorflow as tf
-import util
-from config import workspace
-from encoder import OneHot
-from msg import send_mail
+from cnn import util
+from ..config import workspace
+from cnn.encoder import OneHot
+from cnn.msg import send_mail
 
 from alexnet import  AlxNet
 from cnn.data import DataSet

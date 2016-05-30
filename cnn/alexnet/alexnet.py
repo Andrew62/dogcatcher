@@ -24,8 +24,8 @@ class AlxNet(object):
             3: kernel([3, 3, 128, 192], 'kernel_3'),
             4: kernel([3, 3, 192, 192], 'kernel_4'),
             5: kernel([3, 3, 192, 128], 'kernel_5'),
-            6: kernel([self.middle_shape, self.middle_shape], 'layer_6'),
-            7: kernel([self.middle_shape, self.middle_shape], 'layer_7'),
+            6: kernel([self.middle_shape, 4096], 'layer_6'),
+            7: kernel([4096, 4096], 'layer_7'),
             8: kernel([self.middle_shape, self.n_classes], 'layer_8')
 
         }
@@ -36,8 +36,8 @@ class AlxNet(object):
             3: bias([192], 'biases_3', 0.0),
             4: bias([192], 'biases_4', 1.0),
             5: bias([128], 'biases_5', 1.0),
-            6: bias([self.middle_shape], 'biases_6', 1.0),
-            7: bias([self.middle_shape], 'biases_7', 1.0),
+            6: bias([4096], 'biases_6', 1.0),
+            7: bias([4096], 'biases_7', 1.0),
             8: bias([self.n_classes], 'biases_8', 1.0)
         }
 

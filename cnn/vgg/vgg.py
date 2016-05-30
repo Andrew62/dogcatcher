@@ -5,7 +5,7 @@ from the paper.
 """
 
 import tensorflow as tf
-from vgg_tools.wrapper import kernel, bias, conv_layer, max_pool, matmul
+from cnn.vgg.wrapper import kernel, bias, conv_layer, max_pool, matmul
 
 
 class VGG(object):
@@ -29,7 +29,7 @@ class VGG(object):
             12 : kernel([3, 3, 512, 512], 'conv12'),
 
             #fc
-            13 : kernel([4096, 4096], 'fc7'),
+            13 : kernel([middle_shape, 4096], 'fc7'),
             14 : kernel([4096, n_classes], 'fc8')
 
         }
@@ -87,7 +87,7 @@ class VGG(object):
         conv12 = conv_layer(conv11, self.layers[12], self.biases[12], '12')
         pool3 = max_pool(conv12, 'pool4')
 
-        fc6 = tf.reshape(pool3, [-1, 4096], 'fc6')
+        fc6 = tf.reshape(pool3, [1, -1], 'fc6')
         fc7 = matmul(fc6, self.layers[13], self.biases[13], 'fc8')
         return matmul(fc7, self.layers[14], self.biases[14], 'logtis')
 
