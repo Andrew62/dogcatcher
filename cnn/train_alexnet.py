@@ -16,15 +16,15 @@ import os
 import time
 import util
 import shutil
-from wrapper import constant, placeholder
 import tensorflow as tf
 from data import DataSet
 from msg import send_mail
 from encoder import OneHot
+from alexnet import  AlxNet
 from config import workspace
 from datetime import datetime
+from wrapper import constant, placeholder
 
-from alexnet import  AlxNet
 
 # need tensorflow_serving to run model
 # intall http://tensorflow.github.io/serving/setup
@@ -47,8 +47,8 @@ MESSAGE_EVERY = 100
 EMAILING = True
 EMAIL_EVERY = MESSAGE_EVERY * 20
 TRAIN_BATCH_SIZE = 256
-TEST_BATCH_SIZE = 1000
-VALID_BATCH_SIZE = 1000
+TEST_BATCH_SIZE = 400
+VALID_BATCH_SIZE = 400
 N_CLASSES = data.n_classes
 
 onehot = OneHot(data.classes)
