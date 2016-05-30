@@ -17,7 +17,7 @@ in 25.3 seconds.
 
 import pickle
 import numpy as np
-from scipy.misc import imread
+from PIL import Image
 
 
 
@@ -61,7 +61,7 @@ class DataSet(object):
         for i in range(batch_size):
             idx = self.tracker[name]['idx'] + i
             row = self.tracker[name]['data'][idx, :]
-            img = imread(row[1])
+            img = np.array(Image.open(row[1]))
             batch_data[i,:,:,:] = img - img.mean()
             batch_labels.append(row[0])
         self.tracker[name]['idx'] += batch_size
