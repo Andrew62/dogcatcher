@@ -1,14 +1,17 @@
 
-
+"""
+A tensorflow implementation of VGG19. Structure was pulled
+from the paper.
+"""
 
 import tensorflow as tf
-from cnn.vgg.util import kernel, bias, conv_layer, max_pool, matmul
+from vgg_tools.wrapper import kernel, bias, conv_layer, max_pool, matmul
 
 
 class VGG(object):
-    def __init__(self, n_classes=1000):
+    def __init__(self, n_classes, middle_shape=4096):
 
-        layers = {
+        self.layers = {
             1 : kernel([3, 3, 3, 64], 'conv1'),
             2 : kernel([3, 3, 64, 64], 'conv2'),
 
@@ -31,7 +34,7 @@ class VGG(object):
 
         }
 
-        biases = {
+        self.biases = {
             1 : bias([64], 'bias1'),
             2 : bias([64], 'bias2'),
 
@@ -53,44 +56,50 @@ class VGG(object):
 
         }
 
+    def predict(self, data):
+
         # Don't need to specify input data shape once we know everything is hooked up
         # For reference, the verification shape is [256, 224, 224, 3]
-        self.train_labels_placeholder = tf.placeholder(dtype=tf.float32, name="train_labels_placeholder", shape=[10, 224, 224, 3])
-        self.train_data_placeholder = tf.placeholder(dtype=tf.float32, name="train_data_placeholder", shape=[10, 224, 224, 3])
+
+        # TODO move these out of the method
+        # self.train_labels_placeholder = tf.placeholder(dtype=tf.float32, name="train_labels_placeholder", shape=[10, 224, 224, 3])
+        # self.train_data_placeholder = tf.placeholder(dtype=tf.float32, name="train_data_placeholder", shape=[10, 224, 224, 3])
 
         # TODO add validation and test inputs
 
-        self.conv1 = conv_layer(self.train_data_placeholder, layers[1], biases[1], '1')
-        self.conv2 = conv_layer(self.conv1, layers[2], biases[2], '2')
-        self.pool1 = max_pool(self.conv2, 'pool1')
+        conv1 = conv_layer(data, self.layers[1], self.biases[1], '1')
+        conv2 = conv_layer(conv1, self.layers[2], self.biases[2], '2')
+        pool1 = max_pool(conv2, 'pool1')
 
-        self.conv3 = conv_layer(self.pool1, layers[3], biases[3], '3')
-        self.conv4 = conv_layer(self.conv3, layers[4], biases[4], '4')
-        self.pool2 = max_pool(self.conv4, 'pool2')
+        conv3 = conv_layer(pool1, self.layers[3], self.biases[3], '3')
+        conv4 = conv_layer(conv3, self.layers[4], self.biases[4], '4')
+        pool2 = max_pool(conv4, 'pool2')
 
-        self.conv5 = conv_layer(self.pool2, layers[5], biases[5], '5')
-        self.conv6 = conv_layer(self.conv5, layers[6], biases[6], '6')
-        self.conv7 = conv_layer(self.conv6, layers[7], biases[7], '7')
-        self.conv8 = conv_layer(self.conv7, layers[8], biases[8], '8')
-        self.pool3 = max_pool(self.conv8, 'pool3')
+        conv5 = conv_layer(pool2, self.layers[5], self.biases[5], '5')
+        conv6 = conv_layer(conv5, self.layers[6], self.biases[6], '6')
+        conv7 = conv_layer(conv6, self.layers[7], self.biases[7], '7')
+        conv8 = conv_layer(conv7, self.layers[8], self.biases[8], '8')
+        pool3 = max_pool(conv8, 'pool3')
 
-        self.conv9 = conv_layer(self.pool3, layers[9], biases[9], '9')
-        self.conv10 = conv_layer(self.conv9, layers[10], biases[10], '10')
-        self.conv11 = conv_layer(self.conv10, layers[11], biases[11], '11')
-        self.conv12 = conv_layer(self.conv11, layers[12], biases[12], '12')
-        self.pool3 = max_pool(self.conv12, 'pool4')
+        conv9 = conv_layer(pool3, self.layers[9], self.biases[9], '9')
+        conv10 = conv_layer(conv9, self.layers[10], self.biases[10], '10')
+        conv11 = conv_layer(conv10, self.layers[11], self.biases[11], '11')
+        conv12 = conv_layer(conv11, self.layers[12], self.biases[12], '12')
+        pool3 = max_pool(conv12, 'pool4')
 
-        self.fc6 = tf.reshape(self.pool3, [-1, 4096], 'fc6')
-        self.fc7 = matmul(self.fc6, layers[13], biases[13], 'fc8')
-        self.logits = matmul(self.fc7, layers[14], biases[14], 'logtis')
+        fc6 = tf.reshape(pool3, [-1, 4096], 'fc6')
+        fc7 = matmul(fc6, self.layers[13], biases[13], 'fc8')
+        return matmul(fc7, self.layers[14], self.biases[14], 'logtis')
 
-        self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.logits, self.train_labels_placeholder))
+        # TODO remove the code below and put in training script
 
-        self.optimizer = tf.train.AdagradOptimizer(learning_rate=1e-3).minimize(self.loss)
+        # loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.logits, self.train_labels_placeholder))
 
-        self.prediction = tf.nn.softmax(self.logits)
+        # optimizer = tf.train.AdagradOptimizer(learning_rate=1e-3).minimize(self.loss)
+
+        # prediction = tf.nn.softmax(self.logits)
 
 
 
 if __name__ == "__main__":
-    vgg = VGG()
+    vgg = VGG(10)
