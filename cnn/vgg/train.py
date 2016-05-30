@@ -37,7 +37,7 @@ classes = util.pkl_load(workspace.class_pkl)
 encoder = OneHot(classes)
 data = DataSet(workspace.train_pkl, workspace.test_pkl,
                workspace.valid_pkl, workspace.class_pkl,
-               img_shape=(256, 256, 3))
+               img_shape=(224, 224, 3))
 
 config = tf.ConfigProto(inter_op_parallelism_threads=NUM_CORES)
 
