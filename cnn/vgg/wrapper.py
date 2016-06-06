@@ -39,12 +39,12 @@ def bias(shape, name):
 def conv_layer(input, filter, bias, name, strides=[1,1,1,1]):
     with tf.variable_scope(name) as scope:
         conv = tf.nn.conv2d(input, filter, strides, padding='SAME')
-        return tf.nn.relu(conv + bias)
+        return tf.nn.elu(conv + bias)
 
 def matmul(a, b, bias, name):
     with tf.variable_scope(name) as scope:
         mult = tf.matmul(a, b)
-        return tf.nn.relu(mult + bias)
+        return tf.nn.elu(mult + bias)
 
 def max_pool(input, name):
     return tf.nn.max_pool(input, ksize=[1,2,2,1], strides=[1,2,2,1],
