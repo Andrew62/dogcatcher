@@ -11,13 +11,13 @@ import time
 import shutil
 from .vgg import VGG
 import tensorflow as tf
-from data import DataSet
-from datetime import datetime
 from msg import send_mail
 from encoder import OneHot
 from config import workspace
-from .wrapper import placeholder
+from datetime import datetime
+from data_loader import input_pipline
 
+from hashlib import md5
 
 def main():
     ITERATIONS = 5#50001
@@ -30,31 +30,27 @@ def main():
     # TODO 
     # TEST_BATCH_SIZE = 10
     # VALID_BATCH_SIZE = 10
-    MIDDLE_SHAPE=14*14*512
+    MIDDLE_SHAPE=16*16*512#14*14*512
     SAVE_ITER = 1#1000
 
 
     classes = util.pkl_load(workspace.class_pkl)
     encoder = OneHot(classes)
-    data = DataSet(workspace.train_pkl, workspace.test_pkl,
-                   workspace.valid_pkl, workspace.class_pkl,
-                   img_shape=(224, 224, 3))
-
     config = tf.ConfigProto(inter_op_parallelism_threads=NUM_CORES)
 
     graph = tf.Graph()
     with graph.as_default():
-        train_images_placeholder = tf.placeholder(tf.float32,[TRAIN_BATCH_SIZE, 224,224,3], 'train_images')#placeholder("train_images")
-        train_labels_placeholder = placeholder("train_labels")
+        train_images, train_labels = input_pipline(workspace.train_pkl, encoder, TRAIN_BATCH_SIZE)
         model = VGG(N_CLASSES, MIDDLE_SHAPE)
-        logits = model.predict(train_images_placeholder)
-        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, train_labels_placeholder))
+        logits = model.predict(train_images)
+        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, train_labels))
         optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
         train_prediction = tf.nn.softmax(logits)
 
         sess = tf.Session(config=config)
         with sess.as_default():
             sess.run(tf.initialize_all_variables())
+            tf.train.start_queue_runners(sess=sess)
             saver = tf.train.Saver()
             print "\n" + "*" * 50
             ckpt = tf.train.get_checkpoint_state(workspace.vgg_models)
@@ -75,16 +71,12 @@ def main():
                     # make the data object return raw labels
                     # make the encoder encode all labels separate from
                     # the data loader
-                    train_data, train_labels = data.train_batch(TRAIN_BATCH_SIZE)
-                    train_lab_vec = encoder.encode(train_labels)
-    
-                    feed= {train_images_placeholder: train_data,
-                             train_labels_placeholder: train_lab_vec,}
-                    _, sess_loss, predictions = sess.run([optimizer, loss, train_prediction],
-                                                         feed_dict=feed)
+                    labels, opt, sess_loss, predictions = sess.run([train_labels, optimizer, loss, train_prediction])
+
+
     
                     if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
-                        minibatch_accuracy = util.accuracy(predictions, train_lab_vec)
+                        minibatch_accuracy = util.accuracy(predictions, labels)
                         # valid_accuracy = util.accuracy(valid_prediction.eval(), valid_lab_vec)
     
                         # collecting data for visualization later. Could prob use
