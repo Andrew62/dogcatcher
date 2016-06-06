@@ -19,21 +19,30 @@ from data_loader import input_pipline
 
 from hashlib import md5
 
-def main():
-    ITERATIONS = 5#50001
-    N_CLASSES = 252
-    NUM_CORES = 4
-    MESSAGE_EVERY = 1#50
-    EMAILING = False#True
-    EMAIL_EVERY = MESSAGE_EVERY * 20
-    TRAIN_BATCH_SIZE = 10#256
+def main(debug=False):
+    if debug is True:
+        print "DEBUG MODE"
+        ITERATIONS = 5
+        MESSAGE_EVERY =1 
+        EMAILING = False
+        TRAIN_BATCH_SIZE = 10
+        SAVE_ITER = 1
+    else:
+        ITERATIONS = 50001
+        MESSAGE_EVERY = 50
+        EMAILING = True
+        TRAIN_BATCH_SIZE = 256
+        SAVE_ITER = 1000
+        
     # TODO 
     # TEST_BATCH_SIZE = 10
     # VALID_BATCH_SIZE = 10
+    
     MIDDLE_SHAPE=16*16*512#14*14*512
-    SAVE_ITER = 1#1000
-
-
+    EMAIL_EVERY = MESSAGE_EVERY * 20
+    N_CLASSES = 252
+    NUM_CORES = 4
+    
     classes = util.pkl_load(workspace.class_pkl)
     encoder = OneHot(classes)
     config = tf.ConfigProto(inter_op_parallelism_threads=NUM_CORES)
