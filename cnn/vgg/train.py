@@ -25,6 +25,7 @@ def main(debug=False):
         TRAIN_BATCH_SIZE = 5
         SAVE_ITER = 1
         EPOCHS=1
+        TRAIN_ITER = 5
         in_data_pkl = workspace.test_pkl
     else:
         MESSAGE_EVERY = 50
@@ -33,6 +34,7 @@ def main(debug=False):
         SAVE_ITER = 1000
         EPOCHS = 4
         in_data_pkl = workspace.train_pkl
+        TRAIN_ITER = None
         
     # TODO 
     # TEST_BATCH_SIZE = 10
@@ -104,6 +106,8 @@ def main(debug=False):
                         saver.save(sess, os.path.join(workspace.vgg_models, util.model_name(datetime.now())))
                         if EMAILING is True:
                             send_mail("Successful checkpoint", "Iteration {0}".format(i + 1))
+                    if debug is True and (i+1) == TRAIN_ITER:
+                        break
                     i += 1
             except tf.errors.OutOfRangeError:
                 msg = "\n" + "*" * 50
