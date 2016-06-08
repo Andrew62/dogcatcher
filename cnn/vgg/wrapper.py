@@ -24,27 +24,41 @@ def load_variable(var, name):
         var = var.reshape(shape)
     return tf.Variable(var, name=name, dtype=tf.float32)
 
-def kernel(shape, name):
+def kernel_layer(shape, name):
     """
     Initializes a variable
     :param shape: [kernel width, kernel height, kernel depth, output depth]
     :param name: var name with no spaces
     :return: tensorflow variable
     """
-    return tf.Variable(tf.truncated_normal(shape, stddev=1e-2,  name=name, dtype=tf.float32))
+    return tf.get_variable(name=name, shape=shape, initializer=tf.random_normal_initializer(stddev=1e-2))
 
-def bias(shape, name):
-    return tf.Variable(tf.constant(0.0, dtype=tf.float32, shape=shape, name=name))
+def bias_layer(shape, name):
+    return tf.get_variable(name=name, shape=shape, initializer=tf.constant_initializer(0.0))
 
-def conv_layer(input, filter, bias, name, strides=[1,1,1,1]):
-    with tf.variable_scope(name) as scope:
-        conv = tf.nn.conv2d(input, filter, strides, padding='SAME')
-        return tf.nn.elu(conv + bias)
+def conv_layer(input, shape, strides=[1,1,1,1]):
+    """
+    :param input: the input tensor layer
+    :param shape: the shape of the weights layer. the last element will be used for bias shape
+    :param strides: a list of 4 specifying the convolutional kernel
+    :return: tensor
+    """
+    weights = kernel_layer(shape, name='weights')
+    bias_ = bias_layer(shape[-1:], 'bias')
+    conv = tf.nn.conv2d(input, weights, strides, padding='SAME')
+    return tf.nn.elu(conv + bias_)
 
-def matmul(a, b, bias, name):
-    with tf.variable_scope(name) as scope:
-        mult = tf.matmul(a, b)
-        return tf.nn.elu(mult + bias)
+def matmul(a, shape):
+    """
+    Multiplies two matrices
+    :param a: input matrix
+    :param shape: shape of the matrix to multiply
+    :return: a tensor
+    """
+    weights = kernel_layer(shape, 'weights')
+    bias = bias_layer(shape[-1:], 'bias')
+    mult = tf.matmul(a, weights)
+    return tf.nn.elu(mult + bias)
 
 def max_pool(input, name):
     return tf.nn.max_pool(input, ksize=[1,2,2,1], strides=[1,2,2,1],

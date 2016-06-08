@@ -63,7 +63,7 @@ def main(debug=False):
             sess.run(tf.initialize_all_variables())
             coord = tf.train.Coordinator()
             threads = tf.train.start_queue_runners(sess=sess, coord=coord)
-            saver = tf.train.Saver(model.get_all_vars())
+            saver = tf.train.Saver()
             print "\n" + "*" * 50
             ckpt = tf.train.get_checkpoint_state(workspace.vgg_models)
             if ckpt is not None:
@@ -81,7 +81,8 @@ def main(debug=False):
                 while not coord.should_stop():
                     performance_data[i] = {}
                     start = time.time()
-                    labels, opt, sess_loss, predictions = sess.run([train_labels, optimizer, loss, train_prediction])
+                    _, labels, opt, sess_loss, predictions = sess.run([train_images, train_labels, optimizer, loss,
+                                                                       train_prediction])
 
                     if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
                         minibatch_accuracy = util.accuracy(predictions, labels)
