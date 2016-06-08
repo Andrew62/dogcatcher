@@ -58,6 +58,14 @@ class VGG(object):
 
         }
 
+    def get_all_vars(self):
+        """
+        :return: a list of all layers and biases
+        """
+        vars = self.biases.values()
+        vars.extend(self.layers.values())
+        return vars
+
     def predict(self, data):
 
         # Don't need to specify input data shape once we know everything is hooked up

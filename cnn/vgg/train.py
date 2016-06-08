@@ -17,28 +17,28 @@ from config import workspace
 from datetime import datetime
 from data_loader import input_pipline
 
-from hashlib import md5
-
 def main(debug=False):
     if debug is True:
         print "DEBUG MODE"
-        ITERATIONS = 5
         MESSAGE_EVERY =1 
         EMAILING = False
-        TRAIN_BATCH_SIZE = 10
+        TRAIN_BATCH_SIZE = 5
         SAVE_ITER = 1
+        EPOCHS=1
+        in_data_pkl = workspace.test_pkl
     else:
-        ITERATIONS = 50001
         MESSAGE_EVERY = 50
         EMAILING = True
         TRAIN_BATCH_SIZE = 256
         SAVE_ITER = 1000
+        EPOCHS = 4
+        in_data_pkl = workspace.train_pkl
         
     # TODO 
     # TEST_BATCH_SIZE = 10
     # VALID_BATCH_SIZE = 10
     
-    MIDDLE_SHAPE=16*16*512#14*14*512
+    MIDDLE_SHAPE=14*14*512
     EMAIL_EVERY = MESSAGE_EVERY * 20
     N_CLASSES = 252
     NUM_CORES = 4
@@ -49,18 +49,19 @@ def main(debug=False):
 
     graph = tf.Graph()
     with graph.as_default():
-        train_images, train_labels = input_pipline(workspace.train_pkl, encoder, TRAIN_BATCH_SIZE)
+        train_images, train_labels = input_pipline(in_data_pkl, encoder, TRAIN_BATCH_SIZE, EPOCHS)
         model = VGG(N_CLASSES, MIDDLE_SHAPE)
         logits = model.predict(train_images)
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, train_labels))
         optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
         train_prediction = tf.nn.softmax(logits)
 
-        sess = tf.Session(config=config)
+        sess = tf.Session(config=config, graph=graph)
         with sess.as_default():
             sess.run(tf.initialize_all_variables())
-            tf.train.start_queue_runners(sess=sess)
-            saver = tf.train.Saver()
+            coord = tf.train.Coordinator()
+            threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+            saver = tf.train.Saver(model.get_all_vars())
             print "\n" + "*" * 50
             ckpt = tf.train.get_checkpoint_state(workspace.vgg_models)
             if ckpt is not None:
@@ -74,16 +75,12 @@ def main(debug=False):
 
             performance_data = {}
             try:
-                for i in xrange(ITERATIONS):
+                i=0
+                while not coord.should_stop():
                     performance_data[i] = {}
                     start = time.time()
-                    # make the data object return raw labels
-                    # make the encoder encode all labels separate from
-                    # the data loader
                     labels, opt, sess_loss, predictions = sess.run([train_labels, optimizer, loss, train_prediction])
 
-
-    
                     if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
                         minibatch_accuracy = util.accuracy(predictions, labels)
                         # valid_accuracy = util.accuracy(valid_prediction.eval(), valid_lab_vec)
@@ -107,11 +104,14 @@ def main(debug=False):
                         saver.save(sess, os.path.join(workspace.vgg_models, util.model_name(datetime.now())))
                         if EMAILING is True:
                             send_mail("Successful checkpoint", "Iteration {0}".format(i + 1))
+                    i += 1
+            except tf.errors.OutOfRangeError:
                 msg = "\n" + "*" * 50
                 msg += "\n" + "*" * 50
                 # msg += "\nTest accuracy: {0:0.2%}".format(util.accuracy(test_prediction.eval(), test_lab_vec))
                 subj = "Training complete!"
                 print msg
+
             except Exception as e:
                 print e
                 subj = "DOGCATCHER STOPPED!"
@@ -127,7 +127,10 @@ def main(debug=False):
 
                 util.write_csv(performance_data, os.path.join(workspace.vgg_models, 'performance.csv'))
                 util.pkl_dump(encoder, os.path.join(workspace.vgg_models, "encoder.pkl"))
+                coord.request_stop()
+                coord.join(threads)
                 if EMAILING is True:
                     send_mail(subj, msg)
+
 
 
