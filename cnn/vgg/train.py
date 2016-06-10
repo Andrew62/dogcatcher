@@ -19,19 +19,26 @@ from config import workspace
 from .wrapper import placeholder
 
 
-def main():
-    ITERATIONS = 5#50001
+def main(debug=False):
+    if debug is True:
+        print "DEBUG MODE"
+        MESSAGE_EVERY = 1
+        EMAILING = False
+        TRAIN_BATCH_SIZE = 5
+        SAVE_ITER = 1
+        TRAIN_ITER = 5
+    else:
+        MESSAGE_EVERY = 50
+        EMAILING = True
+        TRAIN_BATCH_SIZE = 256
+        SAVE_ITER = 1000
+        TRAIN_ITER = 50000
+
+
+    MIDDLE_SHAPE=14*14*512
+    EMAIL_EVERY = MESSAGE_EVERY * 20
     N_CLASSES = 252
     NUM_CORES = 4
-    MESSAGE_EVERY = 1#50
-    EMAILING = False#True
-    EMAIL_EVERY = MESSAGE_EVERY * 20
-    TRAIN_BATCH_SIZE = 10#256
-    # TODO 
-    # TEST_BATCH_SIZE = 10
-    # VALID_BATCH_SIZE = 10
-    MIDDLE_SHAPE=14*14*512
-    SAVE_ITER = 1#1000
 
 
     classes = util.pkl_load(workspace.class_pkl)
@@ -44,13 +51,10 @@ def main():
 
     graph = tf.Graph()
     with graph.as_default():
-        train_images_placeholder = tf.placeholder(tf.float32,[TRAIN_BATCH_SIZE, 224,224,3], 'train_images')#placeholder("train_images")
-        train_labels_placeholder = placeholder("train_labels")
         model = VGG(N_CLASSES, MIDDLE_SHAPE)
-        logits = model.predict(train_images_placeholder)
-        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, train_labels_placeholder))
+        train_labels_placeholder = placeholder("train_labels")
+        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
         optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
-        train_prediction = tf.nn.softmax(logits)
 
         sess = tf.Session(config=config)
         with sess.as_default():
@@ -69,7 +73,7 @@ def main():
 
             performance_data = {}
             try:
-                for i in xrange(ITERATIONS):
+                for i in xrange(TRAIN_ITER):
                     performance_data[i] = {}
                     start = time.time()
                     # make the data object return raw labels
@@ -78,9 +82,9 @@ def main():
                     train_data, train_labels = data.train_batch(TRAIN_BATCH_SIZE)
                     train_lab_vec = encoder.encode(train_labels)
     
-                    feed= {train_images_placeholder: train_data,
+                    feed= {model.input_data: train_data,
                              train_labels_placeholder: train_lab_vec,}
-                    _, sess_loss, predictions = sess.run([optimizer, loss, train_prediction],
+                    _, sess_loss, predictions = sess.run([optimizer, loss, model.softmax],
                                                          feed_dict=feed)
     
                     if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
