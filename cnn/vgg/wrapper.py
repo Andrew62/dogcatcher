@@ -35,29 +35,13 @@ def kernel_layer(shape, name):
 
 def bias_layer(shape, name):
     return tf.get_variable(name=name, shape=shape, initializer=tf.constant_initializer(0.0))
-
-def conv_layer(input, shape, strides=[1,1,1,1]):
-    """
-    :param input: the input tensor layer
-    :param shape: the shape of the weights layer. the last element will be used for bias shape
-    :param strides: a list of 4 specifying the convolutional kernel
-    :return: tensor
-    """
-    weights = kernel_layer(shape, name='weights')
-    bias_ = bias_layer(shape[-1:], 'bias')
+    
+def conv_layer(input, weights, bias, strides=[1,1,1,1]):
     conv = tf.nn.conv2d(input, weights, strides, padding='SAME')
-    return tf.nn.elu(conv + bias_)
+    return tf.nn.elu(conv + bias)
 
-def matmul(a, shape):
-    """
-    Multiplies two matrices
-    :param a: input matrix
-    :param shape: shape of the matrix to multiply
-    :return: a tensor
-    """
-    weights = kernel_layer(shape, 'weights')
-    bias = bias_layer(shape[-1:], 'bias')
-    mult = tf.matmul(a, weights)
+def matmul(a, b, bias):
+    mult = tf.matmul(a, b)
     return tf.nn.elu(mult + bias)
 
 def max_pool(input, name):

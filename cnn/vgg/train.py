@@ -11,52 +11,48 @@ import time
 import shutil
 from .vgg import VGG
 import tensorflow as tf
+from data import DataSet
 from msg import send_mail
 from encoder import OneHot
 from config import workspace
 from datetime import datetime
+from wrapper import placeholder
 from data_loader import input_pipline
 
 def main(debug=False):
     if debug is True:
         print "DEBUG MODE"
-        MESSAGE_EVERY =1 
+        MESSAGE_EVERY = 1
         EMAILING = False
         TRAIN_BATCH_SIZE = 5
         SAVE_ITER = 1
-        EPOCHS=1
         TRAIN_ITER = 5
-        in_data_pkl = workspace.test_pkl
     else:
         MESSAGE_EVERY = 50
         EMAILING = True
         TRAIN_BATCH_SIZE = 256
         SAVE_ITER = 1000
-        EPOCHS = 4
-        in_data_pkl = workspace.train_pkl
-        TRAIN_ITER = None
-        
-    # TODO 
-    # TEST_BATCH_SIZE = 10
-    # VALID_BATCH_SIZE = 10
-    
+        TRAIN_ITER = 50000
+
     MIDDLE_SHAPE=14*14*512
     EMAIL_EVERY = MESSAGE_EVERY * 20
     N_CLASSES = 252
     NUM_CORES = 4
-    
+
     classes = util.pkl_load(workspace.class_pkl)
     encoder = OneHot(classes)
     config = tf.ConfigProto(inter_op_parallelism_threads=NUM_CORES)
+    
+    data = DataSet(workspace.train_pkl, workspace.test_pkl,
+               workspace.valid_pkl, workspace.class_pkl,
+               img_shape=(224, 224, 3))
 
     graph = tf.Graph()
     with graph.as_default():
-        train_images, train_labels = input_pipline(in_data_pkl, encoder, TRAIN_BATCH_SIZE, EPOCHS)
         model = VGG(N_CLASSES, MIDDLE_SHAPE)
-        logits = model.predict(train_images)
-        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, train_labels))
+        train_labels_placeholder = placeholder("train_labels")
+        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
         optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
-        train_prediction = tf.nn.softmax(logits)
 
         sess = tf.Session(config=config, graph=graph)
         with sess.as_default():
@@ -77,15 +73,22 @@ def main(debug=False):
 
             performance_data = {}
             try:
-                i=0
-                while not coord.should_stop():
+                for i in xrange(TRAIN_ITER):
                     performance_data[i] = {}
                     start = time.time()
-                    _, labels, opt, sess_loss, predictions = sess.run([train_images, train_labels, optimizer, loss,
-                                                                       train_prediction])
-
+                    # make the data object return raw labels
+                    # make the encoder encode all labels separate from
+                    # the data loader
+                    train_data, train_labels = data.train_batch(TRAIN_BATCH_SIZE)
+                    train_lab_vec = encoder.encode(train_labels)
+    
+                    feed= {model.input_data: train_data,
+                             train_labels_placeholder: train_lab_vec,}
+                    _, sess_loss, predictions = sess.run([optimizer, loss, model.softmax],
+                                                         feed_dict=feed)
+    
                     if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
-                        minibatch_accuracy = util.accuracy(predictions, labels)
+                        minibatch_accuracy = util.accuracy(predictions, train_lab_vec)
                         # valid_accuracy = util.accuracy(valid_prediction.eval(), valid_lab_vec)
     
                         # collecting data for visualization later. Could prob use
@@ -110,7 +113,6 @@ def main(debug=False):
                     if debug is True and (i+1) == TRAIN_ITER:
                         break
                     i += 1
-            except tf.errors.OutOfRangeError:
                 msg = "\n" + "*" * 50
                 msg += "\n" + "*" * 50
                 # msg += "\nTest accuracy: {0:0.2%}".format(util.accuracy(test_prediction.eval(), test_lab_vec))

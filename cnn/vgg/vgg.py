@@ -5,102 +5,87 @@ from the paper.
 """
 
 import tensorflow as tf
-from .wrapper import conv_layer, max_pool, matmul
+from .wrapper import kernel_layer, bias_layer, conv_layer, max_pool, matmul, placeholder
 
 
 class VGG(object):
-    def __init__(self, n_classes, middle_shape=4096):
+    def __init__(self, n_classes=252, middle_shape=100352):
 
         self.middle_shape = middle_shape
 
-        self.shapes = {
-            1 : [3, 3, 3, 64],
-            2 : [3, 3, 64, 64],
-
-            3 : [3, 3, 64, 128],
-            4 : [3, 3, 128, 128],
-
-            5 : [3, 3, 128, 256],
-            6 : [3, 3, 256, 256],
-            7 : [3, 3, 256, 256],
-            8 : [3, 3, 256, 256],
-
-            9 : [3, 3, 256, 512],
-            10 : [3, 3, 512, 512],
-            11 : [3, 3, 512, 512],
-            12 : [3, 3, 512, 512],
-
-            #fc
-            13 : [middle_shape, 4096],
-            14 : [4096, n_classes],
-
-        }
-
-    def predict(self, data):
-
-        # Don't need to specify input data shape once we know everything is hooked up
-        # For reference, the verification shape is [256, 224, 224, 3]
-
-        # TODO move these out of the method
-        # self.train_labels_placeholder = tf.placeholder(dtype=tf.float32, name="train_labels_placeholder", shape=[10, 224, 224, 3])
-        # self.train_data_placeholder = tf.placeholder(dtype=tf.float32, name="train_data_placeholder", shape=[10, 224, 224, 3])
-
-        # TODO add validation and test inputs
-
-        # TODO move scope from wrapper out to here and wrap each of these. move kernel and bias creetion into
-        # TODO the below conv_layer, max_pool, etc
+        self.input_data = placeholder('input_data')
 
         with tf.variable_scope("group1"):
             with tf.variable_scope("conv1"):
-                conv1 = conv_layer(data, self.shapes[1])
+                self.weights1 = kernel_layer([3, 3, 3, 64], name='weights')
+                self.bias1 = bias_layer([64], 'bias')
+                self.conv1 = conv_layer(self.input_data, self.weights1, self.bias1)
             with tf.variable_scope("conv2"):
-                conv2 = conv_layer(conv1, self.shapes[2])
-            pool1 = max_pool(conv2, 'pool1')
+                self.weights2 = kernel_layer([3, 3, 64, 64], name='weights')
+                self.bias2 = bias_layer([64], 'bias')
+                self.conv2 = conv_layer(self.conv1, self.weights2, self.bias2)
+            self.pool1 = max_pool(self.conv2, 'pool1')
 
         with tf.variable_scope("group2"):
             with tf.variable_scope("conv3"):
-                conv3 = conv_layer(pool1, self.shapes[3])
+                self.weights3 = kernel_layer([3, 3, 64, 128], name='weights')
+                self.bias3 = bias_layer([128], 'bias')
+                self.conv3 = conv_layer(self.pool1, self.weights3, self.bias3)
             with tf.variable_scope("conv4"):
-                conv4 = conv_layer(conv3, self.shapes[4])
-            pool2 = max_pool(conv4, 'pool2')
+                self.weights4 = kernel_layer([3, 3, 128, 128], name='weights')
+                self.bias4 = bias_layer([128], 'bias')
+                self.conv4 = conv_layer(self.conv3, self.weights4, self.bias4)
+            self.pool2 = max_pool(self.conv4, 'pool2')
 
         with tf.variable_scope("group3"):
             with tf.variable_scope("conv5"):
-                conv5 = conv_layer(pool2, self.shapes[5])
+                self.weights5 = kernel_layer([3, 3, 128, 256], name='weights')
+                self.bias5 = bias_layer([256], 'bias')
+                self.conv5 = conv_layer(self.pool2, self.weights5, self.bias5)
             with tf.variable_scope("conv6"):
-                conv6 = conv_layer(conv5, self.shapes[6])
+                self.weights6 = kernel_layer([3, 3, 256, 256], name='weights')
+                self.bias6 = bias_layer([256], 'bias')
+                self.conv6 = conv_layer(self.conv5, self.weights6, self.bias6)
             with tf.variable_scope("conv7"):
-                conv7 = conv_layer(conv6, self.shapes[7])
+                self.weights7 = kernel_layer([3, 3, 256, 256], name='weights')
+                self.bias7 = bias_layer([256], 'bias')
+                self.conv7 = conv_layer(self.conv6, self.weights7, self.bias7)
             with tf.variable_scope("conv8"):
-                conv8 = conv_layer(conv7, self.shapes[8])
-            pool3 = max_pool(conv8, 'pool3')
+                self.weights8 = kernel_layer([3, 3, 256, 256], name='weights')
+                self.bias8 = bias_layer([256], 'bias')
+                self.conv8 = conv_layer(self.conv7, self.weights8, self.bias8)
+            self.pool3 = max_pool(self.conv8, 'pool3')
 
         with tf.variable_scope("group4"):
             with tf.variable_scope("conv9"):
-                conv9 = conv_layer(pool3, self.shapes[9])
+                self.weights9 = kernel_layer([3, 3, 256, 512], name='weights')
+                self.bias9 = bias_layer([512], 'bias')
+                self.conv9 = conv_layer(self.pool3, self.weights9, self.bias9)
             with tf.variable_scope("conv10"):
-                conv10 = conv_layer(conv9, self.shapes[10])
+                self.weights10 = kernel_layer([3, 3, 512, 512], name='weights')
+                self.bias10 = bias_layer([512], 'bias')
+                self.conv10 = conv_layer(self.conv9, self.weights10, self.bias10)
             with tf.variable_scope("conv11"):
-                conv11 = conv_layer(conv10, self.shapes[11])
+                self.weights11 = kernel_layer([3, 3, 512, 512], name='weights')
+                self.bias11 = bias_layer([512], 'bias')
+                self.conv11 = conv_layer(self.conv10, self.weights11, self.bias11)
             with tf.variable_scope("conv12"):
-                conv12 = conv_layer(conv11, self.shapes[12])
-            pool4 = max_pool(conv12, 'pool4')
+                self.weights12 = kernel_layer([3, 3, 512, 512], name='weights')
+                self.bias12 = bias_layer([512], 'bias')
+                self.conv12 = conv_layer(self.conv11, self.weights12, self.bias12)
+            self.pool4 = max_pool(self.conv12, 'pool4')
 
         with tf.variable_scope("group5"):
-            fc6 = tf.reshape(pool4, [-1, self.middle_shape], 'fc6')
+            self.fc6 = tf.reshape(self.pool4, [-1, middle_shape], 'fc6')
             with tf.variable_scope("fc7"):
-                fc7 = matmul(fc6, self.shapes[13])
+                self.weights13 = kernel_layer([middle_shape, 4096], 'weights')
+                self.bias13 = bias_layer(4096, 'bias')
+                self.fc7 = matmul(self.fc6, self.weights13, self.bias13)
             with tf.variable_scope("logits"):
-                return matmul(fc7, self.shapes[14])
-
-        # TODO remove the code below and put in training script
-
-        # loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.logits, self.train_labels_placeholder))
-
-        # optimizer = tf.train.AdagradOptimizer(learning_rate=1e-3).minimize(self.loss)
-
-        # prediction = tf.nn.softmax(self.logits)
-
+                self.weights14 = kernel_layer([4096, n_classes], 'weights')
+                self.bias14 = bias_layer([n_classes], 'bias')
+                self.logits = matmul(self.fc7, self.weights14, self.bias14)
+        self.softmax = tf.nn.softmax(self.logits, 'softmax')
 
 
 if __name__ == "__main__":
