@@ -16,15 +16,8 @@ from msg import send_mail
 from encoder import OneHot
 from datetime import datetime
 from config import workspace
-<<<<<<< HEAD
-from datetime import datetime
-from wrapper import placeholder
-from data_loader import input_pipline
-=======
 from cnn.wrapper import placeholder
 
-
->>>>>>> ad96bb2c735ab88c18fa896351b0fd3671acb444
 
 def train_vgg(debug=False):
     if debug is True:
