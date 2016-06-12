@@ -57,7 +57,7 @@ def train_vgg(debug=False):
     graph = tf.Graph()
     with graph.as_default():
         model = VGG(N_CLASSES, MIDDLE_SHAPE)
-        train_labels_placeholder = placeholder("train_labels")
+        train_labels_placeholder = placeholder("train_labels", shape=None)
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
         optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
 

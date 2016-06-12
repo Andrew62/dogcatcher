@@ -49,7 +49,7 @@ def train_alexnet(debug=False):
     graph = tf.Graph()
     with graph.as_default():
         model = AlxNet(N_CLASSES)
-        train_labels_placeholder = placeholder("train_labels")
+        train_labels_placeholder = placeholder("train_labels", shape=None)
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
         optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
 
@@ -58,7 +58,7 @@ def train_alexnet(debug=False):
             sess.run(tf.initialize_all_variables())
             saver = tf.train.Saver()
             print "\n" + "*" * 50
-            ckpt = tf.train.get_checkpoint_state(workspace.alexnet)
+            ckpt = tf.train.get_checkpoint_state(workspace.alexnet_models)
             if ckpt is not None:
                 print "\nCheckpoint {0} restored!".format(os.path.basename(ckpt.model_checkpoint_path))
                 saver.restore(sess, ckpt.model_checkpoint_path)

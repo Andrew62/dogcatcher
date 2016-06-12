@@ -68,7 +68,7 @@ class AlxNet(object):
                 self.fc7 = tf.nn.dropout(self.fc7, self.keep_prob)
 
         with tf.variable_scope("logits"):
-            self.weights8 = kernel_layer([middle_shape, self.n_classes], 'weights')
+            self.weights8 = kernel_layer([4096, self.n_classes], 'weights')
             self.bias8 = bias_layer([self.n_classes], 'bias', 1.0)
             self.logits = matmul(self.fc7, self.weights8, self.bias8)
 
