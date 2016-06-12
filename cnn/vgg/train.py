@@ -30,7 +30,7 @@ def main(debug=False):
     else:
         MESSAGE_EVERY = 50
         EMAILING = True
-        TRAIN_BATCH_SIZE = 256
+        TRAIN_BATCH_SIZE = 128
         SAVE_ITER = 1000
         TRAIN_ITER = 50000
 
