@@ -5,7 +5,8 @@ from the paper.
 """
 
 import tensorflow as tf
-from .wrapper import kernel_layer, bias_layer, conv_layer, max_pool, matmul, placeholder
+from wrapper import (kernel_layer, bias_layer, conv_layer,
+                         max_pool, matmul, placeholder, get_middle_shape)
 
 
 class VGG(object):
@@ -75,6 +76,7 @@ class VGG(object):
                 self.conv12 = conv_layer(self.conv11, self.weights12, self.bias12)
             self.pool4 = max_pool(self.conv12, 'pool4')
 
+        middle_shape = get_middle_shape(self.pool4)
         with tf.variable_scope("group5"):
             self.fc6 = tf.reshape(self.pool4, [-1, middle_shape], 'fc6')
             with tf.variable_scope("fc7"):

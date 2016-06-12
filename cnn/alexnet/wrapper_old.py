@@ -10,7 +10,7 @@ def kernel(shape, name):
         raise TypeError("shape must be a list not {0}".format(type(shape)))
     return tf.Variable(tf.truncated_normal(shape, dtype=tf.float32, stddev=1e-2, name=name))
 
-def bias(shape, name, constant=0):
+def bias(shape, name, constant=0.0):
     if type(shape) is not list:
         raise TypeError("shape must be a list not {0}".format(type(shape)))
     return tf.Variable(tf.constant(constant, shape=shape, dtype=tf.float32, name=name))
