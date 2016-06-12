@@ -16,7 +16,7 @@ class AlxNet(object):
         """
         self.input_data = placeholder("input_data")
         self.keep_prob = constant(keep_prob, "Dropout")
-        self.train = train 
+        self.train = train
 
         self.n_classes = n_classes
 
