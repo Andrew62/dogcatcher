@@ -12,14 +12,15 @@ import shutil
 from .vgg import VGG
 import tensorflow as tf
 from data import DataSet
-from datetime import datetime
 from msg import send_mail
 from encoder import OneHot
+from datetime import datetime
 from config import workspace
-from .wrapper import placeholder
+from cnn.wrapper import placeholder
 
 
-def main(debug=False):
+
+def train_vgg(debug=False):
     if debug is True:
         print "DEBUG MODE"
         MESSAGE_EVERY = 1

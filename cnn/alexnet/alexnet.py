@@ -3,96 +3,74 @@
 Tensorflow implementation of AlexNet
 """
 import tensorflow as tf
-from wrapper import kernel, bias, constant, norm, max_pool
+from wrapper import (kernel_layer, bias_layer, constant, norm,
+                     max_pool, placeholder, conv_layer, matmul,
+                     get_middle_shape)
 
 class AlxNet(object):
-    def __init__(self, n_classes, middle_shape=8192, keep_prob=0.5):
+    def __init__(self, n_classes, keep_prob=0.5, train=False):
         """
         The middle shape in AlexNet is designed to be 4096, however,
         we are using larger images so the fully connected layers
         need to be modified
         """
-
+        self.input_data = placeholder("input_data")
         self.keep_prob = constant(keep_prob, "Dropout")
+        self.train = train 
 
-        self.middle_shape = middle_shape
         self.n_classes = n_classes
 
-        self.layers = {
-            1: kernel([11, 11, 3, 48], 'kernel_1'),
-            2: kernel([5, 5, 48, 128], 'kernel_2'),
-            3: kernel([3, 3, 128, 192], 'kernel_3'),
-            4: kernel([3, 3, 192, 192], 'kernel_4'),
-            5: kernel([3, 3, 192, 128], 'kernel_5'),
-            6: kernel([self.middle_shape, 4096], 'layer_6'),
-            7: kernel([4096, 4096], 'layer_7'),
-            8: kernel([self.middle_shape, self.n_classes], 'layer_8')
+        with tf.variable_scope("pool1"):
+            self.weights1 = kernel_layer([11, 11, 3, 48], 'weights')
+            self.bias1 = bias_layer([48], 'bias', 1.0)
+            self.conv1 = conv_layer(self.input_data, self.weights1, self.bias1, [1, 4, 4, 1])
+            self.norm1 = norm(self.conv1, 'norm')
+            self.pool1 = max_pool(self.norm1, 'pool', [1, 3, 3, 1], [1, 2, 2, 1])
 
-        }
+        with tf.variable_scope("pool2"):
+            self.weights2 = kernel_layer([5, 5, 48, 128], 'weights')
+            self.bias2 = bias_layer([128], 'bias', 1.0)
+            self.conv2 = conv_layer(self.pool1, self.weights2, self.bias2)
+            self.norm2 = norm(self.conv2, "norm2")
+            self.pool2 = max_pool(self.norm2, 'pool2', [1, 3, 3, 1], [1, 2, 2, 1])
 
-        self.biases = {
-            1: bias([48], 'biases_1', 0.0),
-            2: bias([128], 'biases_2', 1.0),
-            3: bias([192], 'biases_3', 0.0),
-            4: bias([192], 'biases_4', 1.0),
-            5: bias([128], 'biases_5', 1.0),
-            6: bias([4096], 'biases_6', 1.0),
-            7: bias([4096], 'biases_7', 1.0),
-            8: bias([self.n_classes], 'biases_8', 1.0)
-        }
+        with tf.variable_scope("pool3"):
+            with tf.variable_scope('conv3'):
+                self.weights3 = kernel_layer([3, 3, 128, 192], 'weights')
+                self.bias3 = bias_layer([192], 'bias')
+                self.conv3 = conv_layer(self.pool2, self.weights3, self.bias3)
+            with tf.variable_scope("conv4"):
+                self.weights4 = kernel_layer([3, 3, 192, 192], 'weights')
+                self.bias4 = bias_layer([192], 'bias', 1.0)
+                self.conv4 = conv_layer(self.conv3, self.weights4, self.bias4)
+            with tf.variable_scope("conv5"):
+                self.weights5 = kernel_layer([3, 3, 192, 128], 'weights')
+                self.bias5 = bias_layer([128], 'bias', 1.0)
+                self.conv5 = conv_layer(self.conv4, self.weights5, self.bias5)
 
+            self.pool5 = max_pool(self.conv5, 'pool5', [1, 3, 3, 1], [1, 2, 2, 1])
 
+        middle_shape = get_middle_shape(self.pool5)
+        with tf.variable_scope("fc6"):
+            self.reshape5 = tf.reshape(self.pool5, [-1, middle_shape])
+            self.weights6 = kernel_layer([middle_shape, 4096], 'weights')
+            self.bias6 = bias_layer([4096], 'bias', 1.0)
+            self.fc6 = matmul(self.reshape5, self.weights6, self.bias6)
+            if self.train is True:
+                self.fc6 = tf.nn.dropout(self.fc6, self.keep_prob)
 
-    def predict(self, data, train=False):
-        conv_1 = tf.nn.conv2d(data, self.layers[1], [1, 4, 4, 1],
-                              padding='SAME', name='convolution_1')
+        with tf.variable_scope("fc7"):
+            self.weights7 = kernel_layer([4096, 4096], 'weights')
+            self.bias7 = bias_layer([4096], 'bias', 1.0)
+            self.fc7 = matmul(self.fc6, self.weights7, self.bias7)
 
-        hidden_1 = tf.nn.relu(conv_1 + self.biases[1], name='ReLU_1')
+            if self.train is True:
+                self.fc7 = tf.nn.dropout(self.fc7, self.keep_prob)
 
-        norm_1 = norm(hidden_1, 'norm_1')
+        with tf.variable_scope("logits"):
+            self.weights8 = kernel_layer([middle_shape, self.n_classes], 'weights')
+            self.bias8 = bias_layer([self.n_classes], 'bias', 1.0)
+            self.logits = matmul(self.fc7, self.weights8, self.bias8)
 
-        max_pool_1 = max_pool(norm_1, 'max_pool_1')
+        self.softmax = tf.nn.softmax(self.logits, 'softmax')
 
-        conv_2 = tf.nn.conv2d(max_pool_1, self.layers[2], strides=[1, 1, 1, 1],
-                              padding='SAME', name='conv_2')
-
-        hidden_2 = tf.nn.relu(conv_2 + self.biases[2], name='ReLU_2')
-
-        norm_2 = norm(hidden_2, "norm_2")
-
-        max_pool_2 = max_pool(norm_2, 'max_pool_2')
-
-        conv_3 = tf.nn.conv2d(max_pool_2, self.layers[3], strides=[1, 1, 1, 1],
-                              padding='SAME', name='conv_3')
-
-        hidden_3 = tf.nn.relu(conv_3 + self.biases[3], name='relu_3')
-
-        conv_4 = tf.nn.conv2d(hidden_3, self.layers[4], strides=[1, 1, 1, 1],
-                              padding='SAME', name='conv_4')
-
-        hidden_4 = tf.nn.relu(conv_4 + self.biases[4], name='hidden_4')
-
-        conv_5 = tf.nn.conv2d(hidden_4, self.layers[5], strides=[1, 1, 1, 1],
-                              padding='SAME', name='conv_5')
-
-        max_pool_5 = max_pool(conv_5, 'max_pool_5')
-
-        reshape_max_pool_5 = tf.reshape(max_pool_5, [-1, self.middle_shape])
-
-        matmul_6 = tf.matmul(reshape_max_pool_5, self.layers[6])
-
-        hidden_6 = tf.nn.relu(matmul_6 + self.biases[6], name='hidden_6')
-
-        if train is True:
-            hidden_6 = tf.nn.dropout(hidden_6, self.keep_prob)
-
-        matmul_7 = tf.matmul(hidden_6, self.layers[7])
-
-        hidden_7 = tf.nn.relu(matmul_7 + self.biases[7], name='hidden_7')
-
-        if train is True:
-            hidden_7 = tf.nn.dropout(hidden_7, self.keep_prob)
-
-        matmul_8 = tf.matmul(hidden_7, self.layers[8])
-
-        return tf.nn.relu(matmul_8 + self.biases[8], name="logits")
