@@ -33,8 +33,8 @@ def kernel_layer(shape, name):
     """
     return tf.get_variable(name=name, shape=shape, initializer=tf.random_normal_initializer(stddev=1e-2))
 
-def bias_layer(shape, name, const=0.0):
-    return tf.get_variable(name=name, shape=shape, initializer=tf.constant_initializer(const))
+def bias_layer(shape, name, val=0.0):
+    return tf.get_variable(name=name, shape=shape, initializer=tf.constant_initializer(val))
 
 def conv_layer(input, weights, bias, strides=[1,1,1,1]):
     conv = tf.nn.conv2d(input, weights, strides, padding='SAME')
