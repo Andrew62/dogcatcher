@@ -20,27 +20,28 @@ from cnn.encoder import OneHot
 
 if __name__ == "__main__":
     dat = DataSet(workspace.train_pkl, workspace.test_pkl, workspace.valid_pkl,
-                  workspace.class_pkl, img_shape=(256,256,3))
+                  workspace.class_pkl, img_shape=(224,224,3))
     encoder = OneHot(dat.classes)
     print len(dat.classes)
     for item in ['train', 'test', 'valid']:
         print item, len(np.unique(dat.tracker[item]['data'][:,1]))
     start = time.time()
     n_iter = 10
-    for i in range(n_iter):
-        train, lab = dat.test_batch(20)
+    epoch = 0
+    while epoch < 1:
+        train, lab, epoch = dat.test_batch(20)
         lab_vec = encoder.encode(lab)
         print "Input label: {0}\n".format(lab[0]),
         #print "Decoded label: {0}".format(encoder.decode(lab_vec[0,:]))
 
     for i in range(n_iter):
-        train, lab = dat.train_batch(20)
+        train, lab, epoch = dat.train_batch(20)
         lab_vec = encoder.encode(lab)
         print "Input label: {0}\n".format(lab[0]),
         #print "Decoded label: {0}".format(encoder.decode(lab_vec[0, :]))
 
     for i in range(n_iter):
-        train, lab = dat.valid_batch(20)
+        train, lab, epoch = dat.valid_batch(20)
         lab_vec = encoder.encode(lab)
         print "Input label: {0}\n".format(lab[0]),
         #print "Decoded label: {0}".format(encoder.decode(lab_vec[0, :]))

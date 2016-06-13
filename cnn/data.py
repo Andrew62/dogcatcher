@@ -32,6 +32,7 @@ class DataSet(object):
         
         for item in ['train', 'test', 'valid']:
             self.tracker[item]['idx'] = 0
+            self.tracker[item]['epoch'] = 0
 
     def pkl_load(self, fp):
         with open(fp, 'rb') as infile:
@@ -54,6 +55,7 @@ class DataSet(object):
             print "Shuffling {0} data...".format(name)
             self.tracker[name]['data'] = np.random.permutation(self.tracker[name]['data'])
             self.tracker[name]['idx'] = 0
+            self.tracker[name]['epoch'] += 1
             
         batch_shape = (batch_size, self.img_shape[0], self.img_shape[1], self.img_shape[2])
         batch_data = np.zeros(shape=batch_shape, dtype=np.float32)
@@ -65,17 +67,27 @@ class DataSet(object):
             batch_data[i,:,:,:] = img - img.mean()
             batch_labels.append(row[0])
         self.tracker[name]['idx'] += batch_size
-        normed = (batch_data - np.mean(batch_data))/(np.std(batch_data))
+        normed = (batch_data - np.mean(batch_data, 0))/(np.std(batch_data, 0))
         return normed, batch_labels
         
     def train_batch(self, batch_size):
-        return self.batch(batch_size, 'train')
+        """
+        :param batch_size: an integer for the number of training samples
+        :return: an array of nornmed training samples, labels, and epoch number (samples, epoch)
+        """
+        name = 'train'
+        samples, labels = self.batch(batch_size, name)
+        return samples, labels, self.tracker[name]['epoch']
         
     def test_batch(self, batch_size):
-        return self.batch(batch_size, 'test')
-        
+        name='test'
+        samples, labels = self.batch(batch_size, name)
+        return samples, labels, self.tracker[name]['epoch']
+
     def valid_batch(self, batch_size):
-        return self.batch(batch_size, 'valid')
+        name = 'valid'
+        samples, labels = self.batch(batch_size, name)
+        return samples, labels, self.tracker[name]['epoch']
     
 
             

@@ -36,17 +36,17 @@ def kernel_layer(shape, name):
 def bias_layer(shape, name, val=0.0):
     return tf.get_variable(name=name, shape=shape, initializer=tf.constant_initializer(val))
 
-def conv_layer(input, weights, bias, strides=[1,1,1,1]):
-    conv = tf.nn.conv2d(input, weights, strides, padding='SAME')
+def conv_layer(input, weights, bias, strides=[1,1,1,1], padding="SAME"):
+    conv = tf.nn.conv2d(input, weights, strides, padding=padding)
     return tf.nn.elu(conv + bias)
 
 def matmul(a, b, bias):
     mult = tf.matmul(a, b)
     return tf.nn.elu(mult + bias)
 
-def max_pool(input, name, ksize=[1,2,2,1,], strides=[1,2,2,1]):
+def max_pool(input, name, ksize=[1,2,2,1,], strides=[1,2,2,1], padding="SAME"):
     return tf.nn.max_pool(input, ksize=ksize, strides=strides,
-                          padding='SAME', name=name)
+                          padding=padding, name=name)
 def accuracy(predictions, labels):
     return (np.sum(np.argmax(predictions, 1) == np.argmax(labels, 1)) * 1.) / predictions.shape[0]
 

@@ -26,13 +26,13 @@ def train_alexnet(debug=False):
         EMAILING = False
         TRAIN_BATCH_SIZE = 5
         SAVE_ITER = 1
-        TRAIN_ITER = 5
+        EPOCHS = 1
     else:
         MESSAGE_EVERY = 50
         EMAILING = True
         TRAIN_BATCH_SIZE = 256
         SAVE_ITER = 1000
-        TRAIN_ITER = 50000
+        EPOCHS = 60
 
     EMAIL_EVERY = MESSAGE_EVERY * 20
     N_CLASSES = 252
@@ -51,7 +51,7 @@ def train_alexnet(debug=False):
         model = AlxNet(N_CLASSES)
         train_labels_placeholder = placeholder("train_labels", shape=None)
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
+        optimizer = tf.train.AdagradOptimizer(learning_rate=0.001).minimize(loss)
 
         sess = tf.Session(config=config)
         with sess.as_default():
@@ -69,14 +69,16 @@ def train_alexnet(debug=False):
             print "Batch size: {0} images".format(TRAIN_BATCH_SIZE)
 
             performance_data = {}
+            epoch = 0
+            i = 0
             try:
-                for i in xrange(TRAIN_ITER):
+                while epoch <= EPOCHS:
                     performance_data[i] = {}
                     start = time.time()
                     # make the data object return raw labels
                     # make the encoder encode all labels separate from
                     # the data loader
-                    train_data, train_labels = data.train_batch(TRAIN_BATCH_SIZE)
+                    train_data, train_labels, epoch = data.train_batch(TRAIN_BATCH_SIZE)
                     train_lab_vec = encoder.encode(train_labels)
 
                     feed = {model.input_data: train_data,
@@ -107,6 +109,7 @@ def train_alexnet(debug=False):
                         saver.save(sess, os.path.join(workspace.alexnet_models, util.model_name(datetime.now())))
                         if EMAILING is True:
                             send_mail("Successful checkpoint", "Iteration {0}".format(i + 1))
+                    i += 1
                 msg = "\n" + "*" * 50
                 msg += "\n" + "*" * 50
                 # msg += "\nTest accuracy: {0:0.2%}".format(util.accuracy(test_prediction.eval(), test_lab_vec))
