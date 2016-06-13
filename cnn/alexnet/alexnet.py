@@ -4,8 +4,7 @@ Tensorflow implementation of AlexNet
 """
 import tensorflow as tf
 from wrapper import (kernel_layer, bias_layer, constant, norm,
-                     max_pool, placeholder, conv_layer, matmul,
-                     get_middle_shape)
+                     max_pool, placeholder, conv_layer, matmul)
 
 class AlxNet(object):
     def __init__(self, n_classes, keep_prob=0.5, train=False):
