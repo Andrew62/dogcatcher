@@ -53,22 +53,22 @@ class AlxNet(object):
         middle_shape = get_middle_shape(self.pool5)
         with tf.variable_scope("fc6"):
             self.reshape5 = tf.reshape(self.pool5, [-1, middle_shape])
-            self.weights6 = kernel_layer([middle_shape, 4096], 'weights')
-            self.bias6 = bias_layer([4096], 'bias', 1.0)
+            self.weights6 = kernel_layer([middle_shape, middle_shape], 'weights')
+            self.bias6 = bias_layer([middle_shape], 'bias', 1.0)
             self.fc6 = matmul(self.reshape5, self.weights6, self.bias6)
             if self.train is True:
                 self.fc6 = tf.nn.dropout(self.fc6, self.keep_prob)
 
         with tf.variable_scope("fc7"):
-            self.weights7 = kernel_layer([4096, 4096], 'weights')
-            self.bias7 = bias_layer([4096], 'bias', 1.0)
+            self.weights7 = kernel_layer([middle_shape, middle_shape], 'weights')
+            self.bias7 = bias_layer([middle_shape], 'bias', 1.0)
             self.fc7 = matmul(self.fc6, self.weights7, self.bias7)
 
             if self.train is True:
                 self.fc7 = tf.nn.dropout(self.fc7, self.keep_prob)
 
         with tf.variable_scope("logits"):
-            self.weights8 = kernel_layer([4096, self.n_classes], 'weights')
+            self.weights8 = kernel_layer([middle_shape, self.n_classes], 'weights')
             self.bias8 = bias_layer([self.n_classes], 'bias', 1.0)
             self.logits = matmul(self.fc7, self.weights8, self.bias8)
 
