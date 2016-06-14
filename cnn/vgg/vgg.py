@@ -10,7 +10,7 @@ from cnn.wrapper import  get_middle_shape
 class VGG(object):
     def __init__(self, n_classes=252):
 
-        self.input_data = tf.placeholder(dtype=tf.float32, name='input_data', shape=(5, 224, 224, 3))
+        self.input_data = tf.placeholder(dtype=tf.float32, name='input_data')
 
         with tf.variable_scope("group1"):
             with tf.variable_scope("conv1"):
