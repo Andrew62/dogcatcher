@@ -24,7 +24,7 @@ def train_vgg(debug=False):
         print "DEBUG MODE"
         MESSAGE_EVERY = 1
         EMAILING = False
-        TRAIN_BATCH_SIZE = 6
+        TRAIN_BATCH_SIZE = 5
         SAVE_ITER = 1
         EPOCHS = 1
     else:

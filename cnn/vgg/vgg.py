@@ -133,7 +133,7 @@ class VGG(object):
                                                  initializer=tf.random_normal_initializer(stddev=1e-2))
                 self.bias17 = tf.get_variable('bias', [4096], initializer=tf.constant_initializer(0.0))
                 self.fc7 = tf.nn.elu(tf.nn.bias_add(tf.matmul(self.fc6, self.weights17), self.bias17))
-            with tf.variable_scope("group7"):
+            with tf.variable_scope("fc8"):
                 self.weights18 = tf.get_variable('weights', [4096, 4096],
                                                  initializer=tf.random_normal_initializer(stddev=1e-2))
                 self.bias18 = tf.get_variable('bias', [4096], initializer=tf.constant_initializer(0.0))
@@ -142,7 +142,7 @@ class VGG(object):
                 self.weights19 = tf.get_variable('weights', [4096, n_classes],
                                                  initializer=tf.random_normal_initializer(stddev=1e-2))
                 self.bias19 = tf.get_variable('bias', [n_classes], initializer=tf.constant_initializer(0.0))
-                self.logits = tf.nn.elu(tf.nn.bias_add(tf.matmul(self.fc8, self.weights18), self.bias18))
+                self.logits = tf.nn.elu(tf.nn.bias_add(tf.matmul(self.fc8, self.weights19), self.bias19))
 
         self.softmax = tf.nn.softmax(self.logits, 'softmax')
 
