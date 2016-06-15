@@ -3,7 +3,7 @@
 Tensorflow implementation of AlexNet
 """
 import tensorflow as tf
-from cnn.wrapper import (kernel_layer, bias_layer, constant, norm,
+from wrapper import (kernel_layer, bias_layer, constant, norm,
                      max_pool, placeholder, conv_layer, matmul, get_middle_shape)
 
 class AlxNet(object):
