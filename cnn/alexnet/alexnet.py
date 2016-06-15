@@ -3,8 +3,8 @@
 Tensorflow implementation of AlexNet
 """
 import tensorflow as tf
-from wrapper import (kernel_layer, bias_layer, constant, norm,
-                     max_pool, placeholder, conv_layer, matmul)
+from cnn.wrapper import (kernel_layer, bias_layer, constant, norm,
+                     max_pool, placeholder, conv_layer, matmul, get_middle_shape)
 
 class AlxNet(object):
     def __init__(self, n_classes, keep_prob=0.5, train=False):
@@ -22,16 +22,16 @@ class AlxNet(object):
         with tf.variable_scope("pool1"):
             self.weights1 = kernel_layer([11, 11, 3, 96], 'weights')
             self.bias1 = bias_layer([96], 'bias', 0.0)
-            self.conv1 = conv_layer(self.input_data, self.weights1, self.bias1, [1, 4, 4, 1], "VALID")
+            self.conv1 = conv_layer(self.input_data, self.weights1, self.bias1, [1, 4, 4, 1])
             self.norm1 = norm(self.conv1, 'norm')
-            self.pool1 = max_pool(self.norm1, 'pool', [1, 3, 3, 1], [1, 2, 2, 1], "VALID")
+            self.pool1 = max_pool(self.norm1, 'pool', [1, 3, 3, 1], [1, 2, 2, 1])
 
         with tf.variable_scope("pool2"):
             self.weights2 = kernel_layer([5, 5, 96, 256], 'weights')
             self.bias2 = bias_layer([256], 'bias', 1.0)
-            self.conv2 = conv_layer(self.pool1, self.weights2, self.bias2, padding="VALID")
+            self.conv2 = conv_layer(self.pool1, self.weights2, self.bias2)
             self.norm2 = norm(self.conv2, "norm2")
-            self.pool2 = max_pool(self.norm2, 'pool2', [1, 3, 3, 1], [1, 2, 2, 1], "VALID")
+            self.pool2 = max_pool(self.norm2, 'pool2', [1, 3, 3, 1], [1, 2, 2, 1])
 
         with tf.variable_scope("pool3"):
             with tf.variable_scope('conv3'):
@@ -47,11 +47,13 @@ class AlxNet(object):
                 self.bias5 = bias_layer([256], 'bias', 1.0)
                 self.conv5 = conv_layer(self.conv4, self.weights5, self.bias5)
 
-            self.pool5 = max_pool(self.conv5, 'pool5', [1, 3, 3, 1], [1, 2, 2, 1], "VALID")
+            self.pool5 = max_pool(self.conv5, 'pool5', [1, 3, 3, 1], [1, 2, 2, 1])
+            middle_shape = get_middle_shape(self.pool5)
+            self.reshape5 = tf.reshape(self.pool5, [-1, middle_shape])
 
         with tf.variable_scope("fc6"):
-            self.reshape5 = tf.reshape(self.pool5, [-1, 4096])
-            self.weights6 = kernel_layer([4096, 4096], 'weights')
+
+            self.weights6 = kernel_layer([middle_shape, 4096], 'weights')
             self.bias6 = bias_layer([4096], 'bias', 1.0)
             self.fc6 = matmul(self.reshape5, self.weights6, self.bias6)
             if self.train is True:
@@ -72,3 +74,5 @@ class AlxNet(object):
 
         self.softmax = tf.nn.softmax(self.logits, 'softmax')
 
+if __name__ == "__main__":
+    alexnet = AlxNet(10)

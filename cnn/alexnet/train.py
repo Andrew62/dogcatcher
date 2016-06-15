@@ -28,11 +28,11 @@ def train_alexnet(debug=False):
         SAVE_ITER = 1
         EPOCHS = 1
     else:
-        MESSAGE_EVERY = 50
+        MESSAGE_EVERY = 100
         EMAILING = True
         TRAIN_BATCH_SIZE = 256
         SAVE_ITER = 1000
-        EPOCHS = 60
+        EPOCHS = 90
 
     EMAIL_EVERY = MESSAGE_EVERY * 20
     N_CLASSES = 252
@@ -95,7 +95,7 @@ def train_alexnet(debug=False):
                         performance_data[i]['loss'] = sess_loss.mean()
                         performance_data[i]['minibatch accuracy'] = minibatch_accuracy
                         # performance_data[i]['valid accuracy'] = valid_accuracy
-                        subj = 'Minibatch accuracy: {0:0.2%}'.format(minibatch_accuracy)
+                        subj = 'Iteration {0} Minibatch accuracy: {1:0.2%}'.format(i+1, minibatch_accuracy)
                         msg = "\n" + "*" * 50
                         msg += '\nMinibatch loss at step {0}: {1:0.6f}\n'.format(i + 1, sess_loss.mean())
                         msg += subj + '\n'
