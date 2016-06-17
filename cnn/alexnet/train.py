@@ -48,10 +48,11 @@ def train_alexnet(debug=False):
 
     graph = tf.Graph()
     with graph.as_default():
+        learn_rate = tf.placeholder(dtype=tf.float32, name='learn_rate')
         model = AlxNet(N_CLASSES, train=True)
         train_labels_placeholder = placeholder("train_labels", shape=None)
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
-        optimizer = tf.train.AdagradOptimizer(learning_rate=0.001).minimize(loss)
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate=learn_rate).minimize(loss)
 
         sess = tf.Session(config=config)
         with sess.as_default():
@@ -65,12 +66,15 @@ def train_alexnet(debug=False):
             else:
                 print "Initialized"
 
+            print "Training on {0} exmaples".format(len(data.tracker['train']['data']))
+
             print "\n", "*" * 50
             print "Batch size: {0} images".format(TRAIN_BATCH_SIZE)
 
             performance_data = {}
             epoch = 0
             i = 0
+            learn_rate_ = 0.01
             try:
                 while epoch <= EPOCHS:
                     performance_data[i] = {}
@@ -82,9 +86,14 @@ def train_alexnet(debug=False):
                     train_lab_vec = encoder.encode(train_labels)
 
                     feed = {model.input_data: train_data,
-                            train_labels_placeholder: train_lab_vec,}
+                            train_labels_placeholder: train_lab_vec,
+                            learn_rate: learn_rate_}
                     _, sess_loss, predictions = sess.run([optimizer, loss, model.softmax],
                                                          feed_dict=feed)                                    
+
+                    if (epoch + 1) % 30 == 0:
+                        learn_rate_ *= 0.1
+                        print "\nDropping learn rate. Now at {0}\n".format(learn_rate_)
 
                     if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
                         minibatch_accuracy = util.accuracy(predictions, train_lab_vec)
