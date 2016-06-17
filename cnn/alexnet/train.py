@@ -84,7 +84,7 @@ def train_alexnet(debug=False):
                     feed = {model.input_data: train_data,
                             train_labels_placeholder: train_lab_vec,}
                     _, sess_loss, predictions = sess.run([optimizer, loss, model.softmax],
-                                                         feed_dict=feed)
+                                                         feed_dict=feed)                                    
 
                     if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
                         minibatch_accuracy = util.accuracy(predictions, train_lab_vec)
@@ -107,6 +107,7 @@ def train_alexnet(debug=False):
                             send_mail("dogcatcher update: " + subj, msg)
                     if ((i + 1) % SAVE_ITER) == 0:
                         saver.save(sess, os.path.join(workspace.alexnet_models, util.model_name(datetime.now())))
+                        util.write_csv(performance_data, os.path.join(workspace.alexnet_models, 'performance.csv'))                        
                         if EMAILING is True:
                             send_mail("Successful checkpoint", "Iteration {0}".format(i + 1))
                     i += 1
