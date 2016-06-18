@@ -26,7 +26,7 @@ class MPTransformer(Process):
         self.queue = queue
         self.name = name
         self.pixels = pixels
-        self.transform = transform
+        self.trans = transform
         
     def reshape(self, a, b):
         """
@@ -144,7 +144,7 @@ class MPTransformer(Process):
             self.save_img(centered, outdir, name, success, trans)
             success +=1
 
-            if self.transform is True:
+            if self.trans is True:
                 trans, flip = self.flip(centered)
                 self.save_img(flip, outdir, name, success, trans)
                 success +=1
