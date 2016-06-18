@@ -52,11 +52,11 @@ class DataSet(object):
         if stop > self.tracker[name]['data'].shape[0]:
             #If the slice goes beyond the number of rows, shuffle the whole 
             #thing and start over
-            print '\n', '"*" * 50
+            print '\n', "*" * 50
             print "*" * 50
             print "Shuffling {0} data...".format(name)
             print "*" * 50
-            print '\n', '"*" * 50
+            print '\n', "*" * 50
 
         self.tracker[name]['data'] = np.random.permutation(self.tracker[name]['data'])
             self.tracker[name]['idx'] = 0
