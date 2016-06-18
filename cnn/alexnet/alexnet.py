@@ -22,21 +22,21 @@ class AlxNet(object):
         with tf.variable_scope("pool1"):
             self.weights1 = kernel_layer([11, 11, 3, 96], 'weights')
             self.bias1 = bias_layer([96], 'bias', 0.0)
-            self.conv1 = conv_layer(self.input_data, self.weights1, self.bias1, [1, 4, 4, 1])
+            self.conv1 = conv_layer(self.input_data, self.weights1, self.bias1, [1, 4, 4, 1], "VALID")
             self.norm1 = norm(self.conv1, 'norm')
             self.pool1 = max_pool(self.norm1, 'pool', [1, 3, 3, 1], [1, 2, 2, 1])
 
         with tf.variable_scope("pool2"):
             self.weights2 = kernel_layer([5, 5, 96, 256], 'weights')
             self.bias2 = bias_layer([256], 'bias', 1.0)
-            self.conv2 = conv_layer(self.pool1, self.weights2, self.bias2)
+            self.conv2 = conv_layer(self.pool1, self.weights2, self.bias2, padding="VALID")
             self.norm2 = norm(self.conv2, "norm2")
             self.pool2 = max_pool(self.norm2, 'pool2', [1, 3, 3, 1], [1, 2, 2, 1])
 
         with tf.variable_scope("pool3"):
             with tf.variable_scope('conv3'):
                 self.weights3 = kernel_layer([3, 3, 256, 384], 'weights')
-                self.bias3 = bias_layer([384], 'bias')
+                self.bias3 = bias_layer([384], 'bias', 0.0)
                 self.conv3 = conv_layer(self.pool2, self.weights3, self.bias3)
             with tf.variable_scope("conv4"):
                 self.weights4 = kernel_layer([3, 3, 384, 256], 'weights')
