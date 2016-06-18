@@ -17,7 +17,7 @@ class OneHotError(Exception):
 class OneHot(object):
     def __init__(self, classes):
         #remove class duplicates
-        self.classes = list(set(classes))
+        self.classes = sorted(list(set(classes)))
         self.n_classes = len(self.classes)
 
     @property
