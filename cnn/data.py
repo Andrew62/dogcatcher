@@ -59,8 +59,8 @@ class DataSet(object):
             print '\n', "*" * 50
 
         self.tracker[name]['data'] = np.random.permutation(self.tracker[name]['data'])
-            self.tracker[name]['idx'] = 0
-            self.tracker[name]['epoch'] += 1
+        self.tracker[name]['idx'] = 0
+        self.tracker[name]['epoch'] += 1
             
         batch_shape = (batch_size, self.img_shape[0], self.img_shape[1], self.img_shape[2])
         batch_data = np.zeros(shape=batch_shape, dtype=np.float32)
