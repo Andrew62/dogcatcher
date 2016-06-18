@@ -19,11 +19,14 @@ from multiprocessing import Process
            
 
 class MPTransformer(Process):
-    def __init__(self, name, queue, pixels=256):
+
+
+    def __init__(self, name, queue, pixels=256, transform=False):
         Process.__init__(self)
         self.queue = queue
         self.name = name
-        self.pixels = pixels   
+        self.pixels = pixels
+        self.transform = transform
         
     def reshape(self, a, b):
         """
@@ -140,17 +143,18 @@ class MPTransformer(Process):
             trans, centered = self.image_center(img)
             self.save_img(centered, outdir, name, success, trans)
             success +=1
-            
-            #trans, flip = self.flip(centered)
-            #self.save_img(flip, outdir, name, success, trans)
-            #success +=1
-            
-            #run transitions
-            #for __ in range(3):
-            #    degs = randint(5, 355)
-            #    trans, rotated = self.rotate(img, degs)
-            #    self.save_img(rotated, outdir, name, success, trans)
-            #    success +=1 
+
+            if self.transform is True:
+                trans, flip = self.flip(centered)
+                self.save_img(flip, outdir, name, success, trans)
+                success +=1
+
+                run transitions
+                for __ in range(3):
+                   degs = randint(5, 355)
+                   trans, rotated = self.rotate(img, degs)
+                   self.save_img(rotated, outdir, name, success, trans)
+                   success +=1
         return success
 
     def check_complete(self, directory):

@@ -52,12 +52,13 @@ if __name__ == "__main__":
     PROCESSES=12
     PIXELS=224
     q = Queue()
+    TRANSFORM = True
     new_folders = []
     processes = []
     classes = set()
 
     for i in range(PROCESSES):
-        process = MPTransformer(str(i),q,PIXELS)
+        process = MPTransformer(str(i), q, PIXELS, transform=TRANSFORM)
         processes.append(process)
         process.daemon = True
         process.start()
