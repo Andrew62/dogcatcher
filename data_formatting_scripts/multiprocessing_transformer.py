@@ -149,7 +149,6 @@ class MPTransformer(Process):
                 self.save_img(flip, outdir, name, success, trans)
                 success +=1
 
-                run transitions
                 for __ in range(3):
                    degs = randint(5, 355)
                    trans, rotated = self.rotate(img, degs)
