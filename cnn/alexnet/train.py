@@ -16,7 +16,6 @@ from encoder import OneHot
 from .alexnet import AlxNet
 from config import workspace
 from datetime import datetime
-from wrapper import placeholder
 
 
 def train_alexnet(debug=False):
@@ -24,7 +23,7 @@ def train_alexnet(debug=False):
         print "DEBUG MODE"
         MESSAGE_EVERY = 1
         EMAILING = False
-        TRAIN_BATCH_SIZE = 5
+        TRAIN_BATCH_SIZE = 10
         SAVE_ITER = 1
         EPOCHS = 1
     else:
@@ -50,7 +49,7 @@ def train_alexnet(debug=False):
     with graph.as_default():
         learn_rate = tf.placeholder(dtype=tf.float32, name='learn_rate')
         model = AlxNet(N_CLASSES, train=True)
-        train_labels_placeholder = placeholder("train_labels", shape=None)
+        train_labels_placeholder = tf.placeholder(tf.float32, shape=None, name="train_labels")
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
         optimizer = tf.train.GradientDescentOptimizer(learning_rate=learn_rate).minimize(loss)
 
@@ -89,7 +88,7 @@ def train_alexnet(debug=False):
                             train_labels_placeholder: train_lab_vec,
                             learn_rate: learn_rate_}
                     _, sess_loss, predictions = sess.run([optimizer, loss, model.softmax],
-                                                         feed_dict=feed)                                    
+                                                         feed_dict=feed)
 
                     if (epoch + 1) % 30 == 0:
                         learn_rate_ *= 0.1
@@ -116,7 +115,7 @@ def train_alexnet(debug=False):
                             send_mail("dogcatcher update: " + subj, msg)
                     if ((i + 1) % SAVE_ITER) == 0:
                         saver.save(sess, os.path.join(workspace.alexnet_models, util.model_name(datetime.now())))
-                        util.write_csv(performance_data, os.path.join(workspace.alexnet_models, 'performance.csv'))                        
+                        util.write_csv(performance_data, os.path.join(workspace.alexnet_models, 'performance.csv'))
                         if EMAILING is True:
                             send_mail("Successful checkpoint", "Iteration {0}".format(i + 1))
                     i += 1

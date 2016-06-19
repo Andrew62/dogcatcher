@@ -5,7 +5,7 @@ from the paper.
 """
 
 import tensorflow as tf
-from cnn.wrapper import  get_middle_shape
+from cnn.helper import  get_middle_shape
 
 class VGG(object):
     def __init__(self, n_classes=252):
