@@ -27,13 +27,13 @@ def train_alexnet(debug=False):
         SAVE_ITER = 30
         EPOCHS = 1
     else:
-        MESSAGE_EVERY = 50
+        MESSAGE_EVERY = 25
         EMAILING = True
         TRAIN_BATCH_SIZE = 128
         SAVE_ITER = 1000
         EPOCHS = 90
 
-    EMAIL_EVERY = MESSAGE_EVERY * 20
+    EMAIL_EVERY = MESSAGE_EVERY * 80
     N_CLASSES = 252
     NUM_CORES = 4
 
@@ -50,7 +50,7 @@ def train_alexnet(debug=False):
         model = AlxNet(N_CLASSES, train=False, lrn=True)
         train_labels_placeholder = tf.placeholder(tf.float32, shape=None, name="train_labels")
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.01).minimize(loss)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
 
         sess = tf.Session(config=config)
         with sess.as_default():
@@ -72,6 +72,8 @@ def train_alexnet(debug=False):
             performance_data = {}
             epoch = 0
             i = 0
+            previous_loss = 0
+            repeat_loss_counter = 0
             try:
                 while epoch <= EPOCHS:
                     start = time.time()
@@ -98,13 +100,22 @@ def train_alexnet(debug=False):
                         # performance_data[i]['valid accuracy'] = valid_accuracy
                         subj = 'Iteration {0} Minibatch accuracy: {1:0.2%}'.format(i+1, minibatch_accuracy)
                         msg = "\n" + "*" * 50
-                        msg += '\nMinibatch loss at step {0}: {1:0.6f}\n'.format(i + 1, sess_loss.mean())
+                        avg_loss = sess_loss.mean()
+                        msg += '\nMinibatch loss at step {0}: {1:0.6f}\n'.format(i + 1, avg_loss)
                         msg += subj + '\n'
                         # msg += "Valid accuracy: {0:0.2%}\n".format(valid_accuracy)
                         msg += 'Minibatch time: {0:0.0f} secs\n'.format(time.time() - start)
                         # msg += "Learn rate: {0}\n".format(learn_rate_)
                         msg += time.ctime()
                         print msg
+
+                        if avg_loss == previous_loss:
+                            repeat_loss_counter += 1
+                            if repeat_loss_counter > 5:
+                                raise Exception("Loss has stalled!")
+                        else:
+                            previous_loss = avg_loss
+                            repeat_loss_counter = 0
 
                         if (((i + 1) % EMAIL_EVERY) == 0) and (EMAILING is True):
                             send_mail("dogcatcher update: " + subj, msg)
