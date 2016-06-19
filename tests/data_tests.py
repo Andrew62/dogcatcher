@@ -51,9 +51,12 @@ if __name__ == "__main__":
     print "Average batch load {0:0.4f}".format(elapsed/(n_iter*1.))
 
 
-    
+    f, (ax1, ax2) = plt.subplots(1, 2)
     hist, bins = np.histogram(train, bins=100)
     width = .7 * (bins[1] - bins[0])
     center = (bins[:-1] + bins[1:])/2
-    plt.imshow(train[1,:,:,:])
+    ax1.imshow(train[1,:,:,:])
+    ax1.set_title(lab[0])
+    ax2.bar(center, hist, align='center', width=width)
+    ax2.set_title("Example pixel distribution")
     plt.show()
