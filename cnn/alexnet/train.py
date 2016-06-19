@@ -47,11 +47,12 @@ def train_alexnet(debug=False):
 
     graph = tf.Graph()
     with graph.as_default():
-        learn_rate = tf.placeholder(dtype=tf.float32, name='learn_rate')
+        # learn_rate = tf.placeholder(dtype=tf.float32, name='learn_rate')
         model = AlxNet(N_CLASSES, train=True)
         train_labels_placeholder = tf.placeholder(tf.float32, shape=None, name="train_labels")
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
-        optimizer = tf.train.GradientDescentOptimizer(learning_rate=learn_rate).minimize(loss)
+        # optimizer = tf.train.GradientDescentOptimizer(learning_rate=learn_rate).minimize(loss)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
 
         sess = tf.Session(config=config)
         with sess.as_default():
@@ -73,7 +74,7 @@ def train_alexnet(debug=False):
             performance_data = {}
             epoch = 0
             i = 0
-            learn_rate_ = 0.01
+            # learn_rate_ = 0.01
             try:
                 while epoch <= EPOCHS:
                     start = time.time()
@@ -84,14 +85,14 @@ def train_alexnet(debug=False):
                     train_lab_vec = encoder.encode(train_labels)
 
                     feed = {model.input_data: train_data,
-                            train_labels_placeholder: train_lab_vec,
-                            learn_rate: learn_rate_}
+                            train_labels_placeholder: train_lab_vec,}
+                            # learn_rate: learn_rate_}
                     _, sess_loss, predictions = sess.run([optimizer, loss, model.softmax],
                                                          feed_dict=feed)
 
-                    if (epoch + 1) % 30 == 0:
-                        learn_rate_ *= 0.1
-                        print "\nDropping learn rate. Now at {0}\n".format(learn_rate_)
+                    # if (epoch + 1) % 30 == 0:
+                    #     learn_rate_ *= 0.1
+                    #     print "\nDropping learn rate. Now at {0}\n".format(learn_rate_)
 
                     if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
                         performance_data[i] = {}
@@ -109,9 +110,10 @@ def train_alexnet(debug=False):
                         msg += subj + '\n'
                         # msg += "Valid accuracy: {0:0.2%}\n".format(valid_accuracy)
                         msg += 'Minibatch time: {0:0.0f} secs\n'.format(time.time() - start)
-                        msg += "Learn rate: {0}\n".format(learn_rate_)
+                        # msg += "Learn rate: {0}\n".format(learn_rate_)
                         msg += time.ctime()
                         print msg
+
                         if (((i + 1) % EMAIL_EVERY) == 0) and (EMAILING is True):
                             send_mail("dogcatcher update: " + subj, msg)
                     if ((i + 1) % SAVE_ITER) == 0:

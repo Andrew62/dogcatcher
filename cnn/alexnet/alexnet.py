@@ -26,7 +26,7 @@ class AlxNet(object):
                 self.conv1 = tf.nn.relu(self.convolve1 + self.bias1)
             self.norm1 = tf.nn.local_response_normalization(self.conv1, depth_radius=2, alpha=2e-5,
                                                             beta=0.75, bias=1.0)
-            self.pool1 = tf.nn.max_pool(self.norm1, [1, 3, 3, 1], [1, 2, 2, 1], padding="SAME")
+            self.pool1 = tf.nn.max_pool(self.norm1, [1, 2, 2, 1], [1, 2, 2, 1], padding="SAME")
 
 
         with tf.variable_scope("pool2"):
@@ -38,7 +38,7 @@ class AlxNet(object):
                 self.conv2 = tf.nn.relu(self.convolve2 + self.bias2)
             self.norm2 = tf.nn.local_response_normalization(self.conv2, depth_radius=2, alpha=2e-5,
                                                             beta=0.75, bias=1.0)
-            self.pool2 = tf.nn.max_pool(self.norm2, [1, 3, 3, 1], [1, 2, 2, 1], padding="SAME")
+            self.pool2 = tf.nn.max_pool(self.norm2, [1, 2, 2, 1], [1, 2, 2, 1], padding="SAME")
 
         with tf.variable_scope("pool3"):
             with tf.variable_scope('conv3'):
@@ -62,7 +62,7 @@ class AlxNet(object):
                 self.convolve5 = tf.nn.conv2d(self.conv4, self.weights5, [1, 1, 1, 1], 'SAME')
                 self.conv5 = tf.nn.relu(self.convolve5 + self.bias5)
 
-            self.pool5 = tf.nn.max_pool(self.conv5, [1, 3, 3, 1], [1, 2, 2, 1], padding="SAME")
+            self.pool5 = tf.nn.max_pool(self.conv5, [1, 2, 2, 1], [1, 2, 2, 1], padding="SAME")
             # pool_5_shape = self.pool5.get_shape().as_list()[1:]
             # middle_shape = 1
             # for x in pool_5_shape:
@@ -94,7 +94,7 @@ class AlxNet(object):
                                             initializer=tf.random_normal_initializer(stddev=1e-2))
             self.bias8 = tf.get_variable('bias', [self.n_classes], initializer=tf.constant_initializer(1.0))
             self.matmul_3 = tf.matmul(self.fc7, self.weights8)
-            self.logits = tf.nn.relu(self.matmul_3)
+            self.logits = tf.nn.relu(self.matmul_3 + self.bias8)
 
         self.softmax = tf.nn.softmax(self.logits, 'softmax')
 
