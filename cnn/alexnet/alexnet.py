@@ -18,17 +18,20 @@ class AlxNet(object):
 
         self.n_classes = n_classes
 
+        self.mean_subtract = tf.sub(self.input_data, tf.reduce_mean(self.input_data, reduction_indices=0))
+
         with tf.variable_scope("pool1"):
             with tf.variable_scope('conv1'):
                 self.weights1 = tf.get_variable('weights', [11, 11, 3, 48],
                                                 initializer=tf.random_normal_initializer(stddev=1e-2))
                 self.bias1 = tf.get_variable('bias', [48], initializer=tf.constant_initializer(0.1))
-                self.convolve1 = tf.nn.conv2d(self.input_data, self.weights1, [1, 4, 4, 1], 'SAME')
+                self.convolve1 = tf.nn.conv2d(self.mean_subtract, self.weights1, [1, 4, 4, 1], 'SAME')
                 self.conv1 = tf.nn.relu(self.convolve1 + self.bias1)
+
             if self.lrn is True:
                 self.conv1 = tf.nn.local_response_normalization(self.conv1, depth_radius=2, alpha=2e-5,
                                                                 beta=0.75, bias=1.0)
-            self.pool1 = tf.nn.max_pool(self.conv1, [1, 3, 3, 1], [1, 2, 2, 1], padding="SAME")
+            self.pool1 = tf.nn.max_pool(self.conv1, [1, 2, 2, 1], [1, 2, 2, 1], padding="SAME")
 
 
         with tf.variable_scope("pool2"):
@@ -38,10 +41,11 @@ class AlxNet(object):
                 self.bias2 = tf.get_variable('bias', [128], initializer=tf.constant_initializer(1.0))
                 self.convolve2 = tf.nn.conv2d(self.pool1, self.weights2, [1, 1, 1, 1], 'SAME')
                 self.conv2 = tf.nn.relu(self.convolve2 + self.bias2)
+
             if self.lrn is True:
                 self.conv2 = tf.nn.local_response_normalization(self.conv2, depth_radius=2, alpha=2e-5,
                                                                 beta=0.75, bias=1.0)
-            self.pool2 = tf.nn.max_pool(self.conv2, [1, 3, 3, 1], [1, 2, 2, 1], padding="SAME")
+            self.pool2 = tf.nn.max_pool(self.conv2, [1, 2, 2, 1], [1, 2, 2, 1], padding="SAME")
 
         with tf.variable_scope("pool3"):
             with tf.variable_scope('conv3'):
@@ -65,7 +69,7 @@ class AlxNet(object):
                 self.convolve5 = tf.nn.conv2d(self.conv4, self.weights5, [1, 1, 1, 1], 'SAME')
                 self.conv5 = tf.nn.relu(self.convolve5 + self.bias5)
 
-            self.pool5 = tf.nn.max_pool(self.conv5, [1, 3, 3, 1], [1, 2, 2, 1], padding="SAME")
+            self.pool5 = tf.nn.max_pool(self.conv5, [1, 2, 2, 1], [1, 2, 2, 1], padding="SAME")
 
             middle_shape = 6272
 
@@ -77,6 +81,7 @@ class AlxNet(object):
             self.bias6 = tf.get_variable('bias', [4096], initializer=tf.constant_initializer(1.0))
             self.matmul_1 = tf.matmul(self.reshape5, self.weights6)
             self.fc6 = tf.nn.relu(self.matmul_1 + self.bias6)
+
             if self.train is True:
                 self.fc6 = tf.nn.dropout(self.fc6, self.keep_prob)
 
@@ -86,6 +91,7 @@ class AlxNet(object):
             self.bias7 = tf.get_variable('bias', [4096], initializer=tf.constant_initializer(1.0))
             self.matmul_2 = tf.matmul(self.fc6, self.weights7)
             self.fc7 = tf.nn.relu(self.matmul_2 + self.bias7)
+
             if self.train is True:
                 self.fc7 = tf.nn.dropout(self.fc7, self.keep_prob)
 
