@@ -52,7 +52,8 @@ if __name__ == "__main__":
 
 
     f, (ax1, ax2) = plt.subplots(1, 2)
-    hist, bins = np.histogram(train, bins=100)
+    #will perform mean subtraction in network
+    hist, bins = np.histogram(train-np.mean(train, axis=0), bins=100)
     width = .7 * (bins[1] - bins[0])
     center = (bins[:-1] + bins[1:])/2
     ax1.imshow(train[1,:,:,:])
