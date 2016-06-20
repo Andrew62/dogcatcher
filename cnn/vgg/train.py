@@ -9,14 +9,13 @@ import os
 import util
 import time
 import shutil
-from .vgg import VGG
 import tensorflow as tf
+from .vgg16_C import VGG16_C
 from data import DataSet
 from msg import send_mail
 from encoder import OneHot
 from config import workspace
 from datetime import datetime
-from wrapper import placeholder
 
 
 def train_vgg(debug=False):
@@ -28,13 +27,13 @@ def train_vgg(debug=False):
         SAVE_ITER = 1
         EPOCHS = 1
     else:
-        MESSAGE_EVERY = 50
+        MESSAGE_EVERY = 20
         EMAILING = True
-        TRAIN_BATCH_SIZE = 256
+        TRAIN_BATCH_SIZE = 128
         SAVE_ITER = 1000
         EPOCHS = 60
 
-    EMAIL_EVERY = MESSAGE_EVERY * 20
+    EMAIL_EVERY = MESSAGE_EVERY * 80
     N_CLASSES = 252
     NUM_CORES = 4
 
@@ -48,8 +47,8 @@ def train_vgg(debug=False):
 
     graph = tf.Graph()
     with graph.as_default():
-        model = VGG(N_CLASSES)
-        train_labels_placeholder = placeholder("train_labels", shape=None)
+        model = VGG16_C(N_CLASSES)
+        train_labels_placeholder = tf.placeholder(tf.float32, name="train_labels")
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
         optimizer = tf.train.AdagradOptimizer(learning_rate=0.001).minimize(loss)
 
