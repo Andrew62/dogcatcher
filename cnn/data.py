@@ -68,7 +68,8 @@ class DataSet(object):
         for i in range(batch_size):
             idx = self.tracker[name]['idx'] + i
             row = self.tracker[name]['data'][idx, :]
-            batch_data[i,:,:,:] = np.array(Image.open(row[1]))
+            img = np.array(Image.open(row[1]))
+            batch_data[i,:,:,:] = img - np.mean(img)
             batch_labels.append(row[0])
         self.tracker[name]['idx'] += batch_size
         return batch_data, batch_labels

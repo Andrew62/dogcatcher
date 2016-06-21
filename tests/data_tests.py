@@ -28,11 +28,15 @@ if __name__ == "__main__":
     start = time.time()
     n_iter = 10
     epoch = 0
+    iter= 0
     while epoch < 1:
         train, lab, epoch = dat.test_batch(20)
         lab_vec = encoder.encode(lab)
         print "Input label: {0}\n".format(lab[0]),
         #print "Decoded label: {0}".format(encoder.decode(lab_vec[0,:]))
+        if iter > 10:
+            break
+        iter += 1
 
     for i in range(n_iter):
         train, lab, epoch = dat.train_batch(20)
