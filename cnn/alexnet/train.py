@@ -21,7 +21,7 @@ from datetime import datetime
 def get_message(i, minibatch_accuracy, start, avg_loss):
     subj = 'Iteration {0} Minibatch accuracy: {1:0.2%}'.format(i + 1, minibatch_accuracy)
     msg = "\n" + "*" * 50
-    msg += '\nMinibatch loss at step {0}: {1:0.6f}\n'.format(i + 1, avg_loss)
+    msg += '\nMinibatch loss at step {0}: {1:0.9f}\n'.format(i + 1, avg_loss)
     msg += subj + '\n'
     msg += 'Minibatch time: {0:0.0f} secs\n'.format(time.time() - start)
     msg += time.ctime()
@@ -56,21 +56,28 @@ def train_alexnet(debug=False):
 
     graph = tf.Graph()
     with graph.as_default():
-        input_data_placeholder = tf.placeholder(tf.float32, name="input_data")#, shape=(128, 224, 224, 3))
-        train_labels_placeholder = tf.placeholder(tf.float32, name="train_labels")
+        input_data_placeholder = tf.placeholder(dtype=tf.float32, name="input_data")#, shape=(128, 224, 224, 3))
+        train_labels_placeholder = tf.placeholder(dtype=tf.float32, name="train_labels")
         keep_prob = tf.constant(keep_prob, name="Dropout", dtype=tf.float32)
         tf.image_summary('input_data_placeholder', input_data_placeholder, max_images=5)
+
+        with tf.variable_scope('batch_norm'):
+            mean, var = tf.nn.moments(input_data_placeholder, axes=[0, 1, 2])
+            batch_norm = tf.nn.batch_normalization(input_data_placeholder, mean, var, offset=None, scale=None,
+                                                   variance_epsilon=1e4)
+            tf.image_summary("batch_norm", batch_norm, max_images=3)
+            helper.var_summary(batch_norm, "batch_norm")
 
         with tf.variable_scope("pool1"):
             with tf.variable_scope('conv1'):
                 weights1 = tf.Variable(tf.truncated_normal([11, 11, 3, 96], dtype=tf.float32, stddev=1e-2))
-                bias1 = tf.Variable(tf.constant(0.1, shape=[96], dtype=tf.float32))
-                convolve1 = tf.nn.conv2d(input_data_placeholder, weights1, [1, 4, 4, 1], 'SAME')
+                bias1 = tf.Variable(tf.constant(0.01, shape=[96], dtype=tf.float32))
+                convolve1 = tf.nn.conv2d(batch_norm, weights1, [1, 4, 4, 1], 'SAME')
                 conv1 = tf.nn.relu(convolve1 + bias1)
                 helper.var_summary(conv1, 'conv1')
 
-                response_norm1 = tf.nn.local_response_normalization(conv1, depth_radius=2, alpha=2e-5,
-                                                                beta=0.75, bias=1.0)
+                response_norm1 = tf.nn.local_response_normalization(conv1, depth_radius=5, alpha=1e-3,
+                                                                    beta=0.75, bias=2.0)
             pool1 = tf.nn.max_pool(response_norm1, [1, 2, 2, 1], [1, 1, 1, 1], padding="VALID")
             helper.var_summary(pool1, 'pool1')
 
@@ -82,8 +89,8 @@ def train_alexnet(debug=False):
                 conv2 = tf.nn.relu(convolve2 + bias2)
                 helper.var_summary(conv2, 'conv2')
 
-                response_norm2 = tf.nn.local_response_normalization(conv2, depth_radius=2, alpha=2e-5,
-                                                                beta=0.75, bias=1.0)
+                response_norm2 = tf.nn.local_response_normalization(conv2, depth_radius=5, alpha=1e-3,
+                                                                beta=0.75, bias=2.0)
             pool2 = tf.nn.max_pool(response_norm2, [1, 3, 3, 1], [1, 2, 2, 1], padding="VALID")
             helper.var_summary(pool2, 'pool2')
 
@@ -138,7 +145,7 @@ def train_alexnet(debug=False):
 
         with tf.variable_scope("logits"):
             weights8 = tf.Variable(tf.truncated_normal([4096, n_classes], stddev=1e-2, dtype=tf.float32))
-            bias8 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[n_classes]))
+            bias8 = tf.Variable(tf.constant(7.0, dtype=tf.float32, shape=[n_classes]))
             matmul_3 = tf.matmul(fc7, weights8)
             logits = tf.nn.relu(matmul_3 + bias8)
             helper.var_summary(logits, 'logits')
@@ -172,8 +179,6 @@ def train_alexnet(debug=False):
         print "Batch size: {0} images".format(TRAIN_BATCH_SIZE)
         epoch = 0
         i = 0
-        previous_loss = 0
-        repeat_loss_counter = 0
         try:
             while epoch <= EPOCHS:
                 start = time.time()
@@ -191,14 +196,6 @@ def train_alexnet(debug=False):
                     subj, msg = get_message(i, minibatch_accuracy, start, avg_loss)
                     print msg
                     summary_writer.add_summary(summary, i)
-
-                    if avg_loss == previous_loss:
-                        repeat_loss_counter += 1
-                        if repeat_loss_counter > 5:
-                            raise Exception("Loss has stalled!")
-                    else:
-                        previous_loss = avg_loss
-                        repeat_loss_counter = 0
 
                     if (((i + 1) % EMAIL_EVERY) == 0) and (EMAILING is True):
                         send_mail("dogcatcher update: " + subj, msg)
