@@ -21,7 +21,9 @@ from cnn.encoder import OneHot
 if __name__ == "__main__":
     dat = DataSet(workspace.train_pkl, workspace.test_pkl, workspace.valid_pkl,
                   workspace.class_pkl, img_shape=(224,224,3))
+
     encoder = OneHot(dat.classes)
+
     print len(dat.classes)
     for item in ['train', 'test', 'valid']:
         print item, len(np.unique(dat.tracker[item]['data'][:,1]))
@@ -33,7 +35,7 @@ if __name__ == "__main__":
         train, lab, epoch = dat.test_batch(20)
         lab_vec = encoder.encode(lab)
         print "Input label: {0}\n".format(lab[0]),
-        #print "Decoded label: {0}".format(encoder.decode(lab_vec[0,:]))
+        print "Decoded label: {0}\n\n".format(encoder.decode(lab_vec[0,:])[1]['label'])
         if iter > 10:
             break
         iter += 1
@@ -42,13 +44,13 @@ if __name__ == "__main__":
         train, lab, epoch = dat.train_batch(20)
         lab_vec = encoder.encode(lab)
         print "Input label: {0}\n".format(lab[0]),
-        #print "Decoded label: {0}".format(encoder.decode(lab_vec[0, :]))
+        print "Decoded label: {0}\n\n".format(encoder.decode(lab_vec[0, :])[1]['label'])
 
     for i in range(n_iter):
         train, lab, epoch = dat.valid_batch(20)
         lab_vec = encoder.encode(lab)
         print "Input label: {0}\n".format(lab[0]),
-        #print "Decoded label: {0}".format(encoder.decode(lab_vec[0, :]))
+        print "Decoded label: {0}\n\n".format(encoder.decode(lab_vec[0, :])[1]['label'])
 
     elapsed = time.time() - start
     print "Complete in {0:0.2f} seconds".format(elapsed)
@@ -57,7 +59,7 @@ if __name__ == "__main__":
 
     f, (ax1, ax2) = plt.subplots(1, 2)
     #will perform mean subtraction in network
-    hist, bins = np.histogram(train-np.mean(train, axis=0), bins=100)
+    hist, bins = np.histogram(train[1,:,:,:], bins=100)
     width = .7 * (bins[1] - bins[0])
     center = (bins[:-1] + bins[1:])/2
     ax1.imshow(train[1,:,:,:])
