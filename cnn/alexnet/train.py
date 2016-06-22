@@ -59,25 +59,26 @@ def train_alexnet(debug=False):
         input_data_placeholder = tf.placeholder(dtype=tf.float32, name="input_data")#, shape=(128, 224, 224, 3))
         train_labels_placeholder = tf.placeholder(dtype=tf.float32, name="train_labels")
         keep_prob = tf.constant(keep_prob, name="Dropout", dtype=tf.float32)
-        tf.image_summary('input_data_placeholder', input_data_placeholder, max_images=5)
+        tf.image_summary('input_data_placeholder', input_data_placeholder, max_images=1)
 
         with tf.variable_scope('batch_norm'):
             mean, var = tf.nn.moments(input_data_placeholder, axes=[0, 1, 2])
             batch_norm = tf.nn.batch_normalization(input_data_placeholder, mean, var, offset=None, scale=None,
                                                    variance_epsilon=1e4)
-            tf.image_summary("batch_norm", batch_norm, max_images=3)
+            tf.image_summary("batch_norm", batch_norm, max_images=1)
             helper.var_summary(batch_norm, "batch_norm")
 
         with tf.variable_scope("pool1"):
             with tf.variable_scope('conv1'):
                 weights1 = tf.Variable(tf.truncated_normal([11, 11, 3, 96], dtype=tf.float32, stddev=1e-2))
-                bias1 = tf.Variable(tf.constant(0.01, shape=[96], dtype=tf.float32))
-                convolve1 = tf.nn.conv2d(batch_norm, weights1, [1, 4, 4, 1], 'SAME')
-                conv1 = tf.nn.relu(convolve1 + bias1)
-                helper.var_summary(conv1, 'conv1')
-
+                bias1 = tf.Variable(tf.constant(1.0, shape=[96], dtype=tf.float32))
+                conv1 = tf.nn.conv2d(batch_norm, weights1, [1, 4, 4, 1], 'SAME')
+                hidden1 = tf.nn.relu(conv1 + bias1)
+                helper.var_summary(hidden1, 'conv1')
                 response_norm1 = tf.nn.local_response_normalization(conv1, depth_radius=5, alpha=1e-3,
                                                                     beta=0.75, bias=2.0)
+                helper.var_summary(response_norm1, 'response_norm1')
+
             pool1 = tf.nn.max_pool(response_norm1, [1, 2, 2, 1], [1, 1, 1, 1], padding="VALID")
             helper.var_summary(pool1, 'pool1')
 
@@ -85,38 +86,39 @@ def train_alexnet(debug=False):
             with tf.variable_scope('conv2'):
                 weights2 = tf.Variable(tf.truncated_normal([5, 5, 96, 256], stddev=1e-2, dtype=tf.float32))
                 bias2 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[256]))
-                convolve2 = tf.nn.conv2d(pool1, weights2, [1, 1, 1, 1], 'SAME')
-                conv2 = tf.nn.relu(convolve2 + bias2)
-                helper.var_summary(conv2, 'conv2')
-
-                response_norm2 = tf.nn.local_response_normalization(conv2, depth_radius=5, alpha=1e-3,
+                conv2 = tf.nn.conv2d(pool1, weights2, [1, 1, 1, 1], 'SAME')
+                hidden2 = tf.nn.relu(conv2 + bias2)
+                helper.var_summary(hidden2, 'conv2')
+                response_norm2 = tf.nn.local_response_normalization(hidden2, depth_radius=5, alpha=1e-3,
                                                                 beta=0.75, bias=2.0)
+                helper.var_summary(response_norm2, "reponse_norm2")
+
             pool2 = tf.nn.max_pool(response_norm2, [1, 3, 3, 1], [1, 2, 2, 1], padding="VALID")
             helper.var_summary(pool2, 'pool2')
 
         with tf.variable_scope("pool3"):
             with tf.variable_scope('conv3'):
                 weights3 = tf.Variable(tf.truncated_normal([3, 3, 256, 384], dtype=tf.float32, stddev=1e-2))
-                bias3 = tf.Variable(tf.constant(0.1, shape=[384], dtype=tf.float32))
-                convolve3 = tf.nn.conv2d(pool2, weights3, [1, 2, 2, 1], 'VALID')
-                conv3 = tf.nn.relu(convolve3 + bias3)
-                helper.var_summary(conv3, 'conv3')
+                bias3 = tf.Variable(tf.constant(1.0, shape=[384], dtype=tf.float32))
+                conv3 = tf.nn.conv2d(pool2, weights3, [1, 2, 2, 1], 'VALID')
+                hidden3 = tf.nn.relu(conv3 + bias3)
+                helper.var_summary(hidden3, 'conv3')
 
             with tf.variable_scope("conv4"):
                 weights4 = tf.Variable(tf.truncated_normal([3, 3, 384, 384], stddev=1e-2, dtype=tf.float32))
                 bias4 = tf.Variable(tf.constant(1.0, shape=[384], dtype=tf.float32))
-                convolve4 = tf.nn.conv2d(conv3, weights4, [1, 1, 1, 1], 'SAME')
-                conv4 = tf.nn.relu(convolve4 + bias4)
-                helper.var_summary(conv4, 'conv4')
+                conv4 = tf.nn.conv2d(hidden3, weights4, [1, 1, 1, 1], 'SAME')
+                hidden4 = tf.nn.relu(conv4 + bias4)
+                helper.var_summary(hidden4, 'conv4')
 
             with tf.variable_scope("conv5"):
                 weights5 = tf.Variable(tf.truncated_normal([3, 3, 384, 256], stddev=1e-2, dtype=tf.float32))
                 bias5 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[256]))
-                convolve5 = tf.nn.conv2d(conv4, weights5, [1, 1, 1, 1], 'SAME')
-                conv5 = tf.nn.relu(convolve5 + bias5)
-                helper.var_summary(conv5, 'conv5')
+                conv5 = tf.nn.conv2d(hidden4, weights5, [1, 1, 1, 1], 'SAME')
+                hidden5 = tf.nn.relu(conv5 + bias5)
+                helper.var_summary(hidden5, 'conv5')
 
-            pool5 = tf.nn.max_pool(conv5, [1, 2, 2, 1], [1, 1, 1, 1], padding="SAME")
+            pool5 = tf.nn.max_pool(hidden5, [1, 2, 2, 1], [1, 1, 1, 1], padding="SAME")
             helper.var_summary(pool5, 'pool5')
 
             middle_shape = 43264
@@ -145,16 +147,15 @@ def train_alexnet(debug=False):
 
         with tf.variable_scope("logits"):
             weights8 = tf.Variable(tf.truncated_normal([4096, n_classes], stddev=1e-2, dtype=tf.float32))
-            bias8 = tf.Variable(tf.constant(7.0, dtype=tf.float32, shape=[n_classes]))
-            matmul_3 = tf.matmul(fc7, weights8)
-            logits = tf.nn.relu(matmul_3 + bias8)
+            bias8 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[n_classes]))
+            logits = tf.matmul(fc7, weights8) + bias8
             helper.var_summary(logits, 'logits')
 
         softmax = tf.nn.softmax(logits, 'softmax')
 
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, train_labels_placeholder))
-        tf.scalar_summary('loss', tf.reduce_mean(loss))
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
+        tf.scalar_summary('loss', loss)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.01).minimize(loss)
 
         saver = tf.train.Saver()
         initop = tf.initialize_all_variables()
