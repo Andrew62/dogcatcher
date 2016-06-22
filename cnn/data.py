@@ -15,9 +15,10 @@ laptop with 8gb ram and ssd, a batch of 256 images loads
 in 25.3 seconds.
 """
 
+import os
 import pickle
 import numpy as np
-from PIL import Image
+from skimage.io import imread
 
 
 
@@ -50,8 +51,8 @@ class DataSet(object):
         stop = self.tracker[name]['idx'] + batch_size
         
         if stop > self.tracker[name]['data'].shape[0]:
-            #If the slice goes beyond the number of rows, shuffle the whole 
-            #thing and start over
+            # If the slice goes beyond the number of rows, shuffle the whole
+            # thing and start over
             print '\n', "*" * 50
             print "*" * 50
             print "Shuffling {0} data...".format(name)
@@ -63,24 +64,19 @@ class DataSet(object):
             self.tracker[name]['epoch'] += 1
             
         batch_shape = (batch_size, self.img_shape[0], self.img_shape[1], self.img_shape[2])
-        batch_data = np.zeros(shape=batch_shape, dtype=np.float32)
+        batch_data = np.ones(shape=batch_shape, dtype=np.float32)
         batch_labels = []
         for i in range(batch_size):
             idx = self.tracker[name]['idx'] + i
             row = self.tracker[name]['data'][idx, :]
-            img = np.array(Image.open(row[1]))
-            batch_data[i,:,:,:] = img - np.mean(img)
+            batch_data[i,:,:,:] = imread(row[1])
             batch_labels.append(row[0])
         self.tracker[name]['idx'] += batch_size
         return batch_data, batch_labels
         
     def train_batch(self, batch_size):
-        """
-        :param batch_size: an integer for the number of training samples
-        :return: an array of nornmed training samples, labels, and epoch number (samples, epoch)
-        """
         name = 'train'
-        samples, labels = self.batch(batch_size, name)
+        samples, labels  = self.batch(batch_size, name)
         return samples, labels, self.tracker[name]['epoch']
         
     def test_batch(self, batch_size):
