@@ -78,13 +78,11 @@ def train_vgg(debug=False):
         print "Batch size: {0} images".format(BATCH_SIZE)
         epoch = 0
         i = 0
-        train_data, train_labels, epoch = data.train_batch(BATCH_SIZE)
-        train_lab_vec = encoder.encode(train_labels)
         try:
             while epoch <= EPOCHS:
                 start = time.time()
-                # train_data, train_labels, epoch = data.train_batch(BATCH_SIZE)
-                # train_lab_vec = encoder.encode(train_labels)
+                train_data, train_labels, epoch = data.train_batch(BATCH_SIZE)
+                train_lab_vec = encoder.encode(train_labels)
 
                 feed = {model.input_data: train_data,
                         train_labels_placeholder: train_lab_vec}
