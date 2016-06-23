@@ -14,6 +14,7 @@ import tensorflow as tf
 from data import DataSet
 from msg import send_mail
 from encoder import OneHot
+from alexnet import AlxNet
 from config import workspace
 from datetime import datetime
 
@@ -45,7 +46,6 @@ def train_alexnet(debug=False):
 
     EMAIL_EVERY = MESSAGE_EVERY * 80
     n_classes = 252
-    keep_prob = 0.5
     train = True
 
     classes = util.pkl_load(workspace.class_pkl)
@@ -56,104 +56,19 @@ def train_alexnet(debug=False):
 
     graph = tf.Graph()
     with graph.as_default():
-        input_data_placeholder = tf.placeholder(dtype=tf.float32, name="input_data")#, shape=(128, 224, 224, 3))
+        model = AlxNet(n_classes, train=train)
         train_labels_placeholder = tf.placeholder(dtype=tf.float32, name="train_labels")
-        keep_prob = tf.constant(keep_prob, name="Dropout", dtype=tf.float32)
-        tf.image_summary('input_data_placeholder', input_data_placeholder, max_images=1)
 
-        with tf.variable_scope('batch_norm'):
-            mean, var = tf.nn.moments(input_data_placeholder, axes=[0, 1, 2])
-            batch_norm = tf.nn.batch_normalization(input_data_placeholder, mean, var, offset=None, scale=None,
-                                                   variance_epsilon=1e4)
-            tf.image_summary("batch_norm", batch_norm, max_images=1)
-            helper.var_summary(batch_norm, "batch_norm")
+        tf.image_summary("raw_input", model.input_data)
+        tf.image_summary("normed_data", model.batch_norm)
 
-        with tf.variable_scope("pool1"):
-            with tf.variable_scope('conv1'):
-                weights1 = tf.Variable(tf.truncated_normal([11, 11, 3, 96], dtype=tf.float32, stddev=1e-2))
-                bias1 = tf.Variable(tf.constant(1.0, shape=[96], dtype=tf.float32))
-                conv1 = tf.nn.conv2d(batch_norm, weights1, [1, 4, 4, 1], 'SAME')
-                hidden1 = tf.nn.relu(conv1 + bias1)
-                helper.var_summary(hidden1, 'conv1')
-                response_norm1 = tf.nn.local_response_normalization(conv1, depth_radius=5, alpha=1e-3,
-                                                                    beta=0.75, bias=2.0)
-                helper.var_summary(response_norm1, 'response_norm1')
+        model_layers = ['response_norm1', 'pool1', 'response_norm2', 'pool2',
+                         'hidden3', 'hidden4', 'hidden5', 'pool5', 'fc6', 'fc7']
+        
+        for layer in model_layers:
+            helper.var_summary(getattr(model, layer), layer)
 
-            pool1 = tf.nn.max_pool(response_norm1, [1, 2, 2, 1], [1, 1, 1, 1], padding="VALID")
-            helper.var_summary(pool1, 'pool1')
-
-        with tf.variable_scope("pool2"):
-            with tf.variable_scope('conv2'):
-                weights2 = tf.Variable(tf.truncated_normal([5, 5, 96, 256], stddev=1e-2, dtype=tf.float32))
-                bias2 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[256]))
-                conv2 = tf.nn.conv2d(pool1, weights2, [1, 1, 1, 1], 'SAME')
-                hidden2 = tf.nn.relu(conv2 + bias2)
-                helper.var_summary(hidden2, 'conv2')
-                response_norm2 = tf.nn.local_response_normalization(hidden2, depth_radius=5, alpha=1e-3,
-                                                                beta=0.75, bias=2.0)
-                helper.var_summary(response_norm2, "reponse_norm2")
-
-            pool2 = tf.nn.max_pool(response_norm2, [1, 3, 3, 1], [1, 2, 2, 1], padding="VALID")
-            helper.var_summary(pool2, 'pool2')
-
-        with tf.variable_scope("pool3"):
-            with tf.variable_scope('conv3'):
-                weights3 = tf.Variable(tf.truncated_normal([3, 3, 256, 384], dtype=tf.float32, stddev=1e-2))
-                bias3 = tf.Variable(tf.constant(1.0, shape=[384], dtype=tf.float32))
-                conv3 = tf.nn.conv2d(pool2, weights3, [1, 2, 2, 1], 'VALID')
-                hidden3 = tf.nn.relu(conv3 + bias3)
-                helper.var_summary(hidden3, 'conv3')
-
-            with tf.variable_scope("conv4"):
-                weights4 = tf.Variable(tf.truncated_normal([3, 3, 384, 384], stddev=1e-2, dtype=tf.float32))
-                bias4 = tf.Variable(tf.constant(1.0, shape=[384], dtype=tf.float32))
-                conv4 = tf.nn.conv2d(hidden3, weights4, [1, 1, 1, 1], 'SAME')
-                hidden4 = tf.nn.relu(conv4 + bias4)
-                helper.var_summary(hidden4, 'conv4')
-
-            with tf.variable_scope("conv5"):
-                weights5 = tf.Variable(tf.truncated_normal([3, 3, 384, 256], stddev=1e-2, dtype=tf.float32))
-                bias5 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[256]))
-                conv5 = tf.nn.conv2d(hidden4, weights5, [1, 1, 1, 1], 'SAME')
-                hidden5 = tf.nn.relu(conv5 + bias5)
-                helper.var_summary(hidden5, 'conv5')
-
-            pool5 = tf.nn.max_pool(hidden5, [1, 2, 2, 1], [1, 1, 1, 1], padding="SAME")
-            helper.var_summary(pool5, 'pool5')
-
-            middle_shape = 43264
-
-            reshape5 = tf.reshape(pool5, [-1, middle_shape])
-
-        with tf.variable_scope("fc6"):
-            weights6 = tf.Variable(tf.truncated_normal([middle_shape, 4096], dtype=tf.float32, stddev=1e-2))
-            bias6 = tf.Variable(tf.constant(1.0, shape=[4096], dtype=tf.float32))
-            matmul_1 = tf.matmul(reshape5, weights6)
-            fc6 = tf.nn.relu(matmul_1 + bias6)
-            helper.var_summary(fc6, 'fc6')
-
-            if train is True:
-                fc6 = tf.nn.dropout(fc6, keep_prob)
-
-        with tf.variable_scope("fc7"):
-            weights7 = tf.Variable(tf.truncated_normal([4096, 4096], stddev=1e-2, dtype=tf.float32))
-            bias7 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[4096]))
-            matmul_2 = tf.matmul(fc6, weights7)
-            fc7 = tf.nn.relu(matmul_2 + bias7)
-            helper.var_summary(fc7, 'fc7')
-
-            if train is True:
-                fc7 = tf.nn.dropout(fc7, keep_prob)
-
-        with tf.variable_scope("logits"):
-            weights8 = tf.Variable(tf.truncated_normal([4096, n_classes], stddev=1e-2, dtype=tf.float32))
-            bias8 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[n_classes]))
-            logits = tf.matmul(fc7, weights8) + bias8
-            helper.var_summary(logits, 'logits')
-
-        softmax = tf.nn.softmax(logits, 'softmax')
-
-        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, train_labels_placeholder))
+        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
         tf.scalar_summary('loss', loss)
         optimizer = tf.train.AdamOptimizer(learning_rate=0.01).minimize(loss)
 
@@ -186,9 +101,9 @@ def train_alexnet(debug=False):
                 train_data, train_labels, epoch = data.train_batch(TRAIN_BATCH_SIZE)
                 train_lab_vec = encoder.encode(train_labels)
 
-                feed = {input_data_placeholder: train_data,
+                feed = {model.input_data: train_data,
                         train_labels_placeholder: train_lab_vec}
-                _, sess_loss, predictions, summary = sess.run([optimizer, loss, softmax, merged],
+                _, sess_loss, predictions, summary = sess.run([optimizer, loss, model.softmax, merged],
                                                               feed_dict=feed)
 
                 if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
