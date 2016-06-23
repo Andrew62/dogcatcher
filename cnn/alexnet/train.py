@@ -34,13 +34,13 @@ def train_alexnet(debug=False):
         print "DEBUG MODE"
         MESSAGE_EVERY = 1
         EMAILING = False
-        TRAIN_BATCH_SIZE = 32
+        BATCH_SIZE = 32
         SAVE_ITER = 30
         EPOCHS = 1
     else:
         MESSAGE_EVERY = 25
         EMAILING = True
-        TRAIN_BATCH_SIZE = 128
+        BATCH_SIZE = 128
         SAVE_ITER = 1000
         EPOCHS = 90
 
@@ -76,9 +76,9 @@ def train_alexnet(debug=False):
         initop = tf.initialize_all_variables()
         merged = tf.merge_all_summaries()
 
-
     sess = tf.Session(graph=graph)
-    summary_writer = tf.train.SummaryWriter(workspace.alexnet_summary, graph=graph)
+    summary_writer = tf.train.SummaryWriter(os.path.join(workspace.alexnet_models, "summaries",
+                                                         time.strftime("%Y%m%d%H%M%S")), graph=graph)
     with sess.as_default():
         sess.run(initop)
         print "\n" + "*" * 50
@@ -92,13 +92,13 @@ def train_alexnet(debug=False):
         print "Training on {0} exmaples".format(len(data.tracker['train']['data']))
 
         print "\n", "*" * 50
-        print "Batch size: {0} images".format(TRAIN_BATCH_SIZE)
+        print "Batch size: {0} images".format(BATCH_SIZE)
         epoch = 0
         i = 0
         try:
             while epoch <= EPOCHS:
                 start = time.time()
-                train_data, train_labels, epoch = data.train_batch(TRAIN_BATCH_SIZE)
+                train_data, train_labels, epoch = data.train_batch(BATCH_SIZE)
                 train_lab_vec = encoder.encode(train_labels)
 
                 feed = {model.input_data: train_data,
@@ -118,6 +118,7 @@ def train_alexnet(debug=False):
 
                 if ((i + 1) % SAVE_ITER) == 0:
                     saver.save(sess, os.path.join(workspace.alexnet_models, util.model_name(datetime.now())))
+                    print "\n" + "*" * 50
                     print "Successful checkpoint iteration {0}".format(i + 1)
                 i += 1
             msg = "\n" + "*" * 50

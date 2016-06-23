@@ -76,7 +76,7 @@ class DataSet(object):
         
     def train_batch(self, batch_size):
         name = 'train'
-        samples, labels  = self.batch(batch_size, name)
+        samples, labels = self.batch(batch_size, name)
         return samples, labels, self.tracker[name]['epoch']
         
     def test_batch(self, batch_size):
