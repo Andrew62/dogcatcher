@@ -5,12 +5,12 @@ from the paper.
 """
 
 import tensorflow as tf
-from cnn.helper import  get_middle_shape
 
 class VGG19(object):
     def __init__(self, n_classes=252):
 
-        self.input_data = tf.placeholder(dtype=tf.float32, name='input_data')
+        self.input_data = tf.placeholder(dtype=tf.float32, name='input_data', shape=(10,224,224,3))
+        self.middle_shape = 25088
 
         with tf.variable_scope('batch_norm'):
             mean, var = tf.nn.moments(self.input_data, axes=[0, 1, 2])
@@ -128,7 +128,6 @@ class VGG19(object):
                 self.convolve16 = tf.nn.conv2d(self.conv15, self.weights16, [1, 1, 1, 1], padding="SAME")
                 self.conv16 = tf.nn.elu(tf.nn.bias_add(self.convolve16, self.bias16))
             self.pool5 = tf.nn.max_pool(self.conv16, [1, 2, 2, 1], [1, 2, 2, 1], "SAME", name="pool5")
-            middle_shape = get_middle_shape(self.pool5)
             self.fc6 = tf.reshape(self.pool5, [-1, middle_shape], 'fc6')
 
         with tf.variable_scope("group6"):
@@ -153,4 +152,4 @@ class VGG19(object):
 
 
 if __name__ == "__main__":
-    vgg = VGG(10)
+    vgg = VGG19(10)

@@ -7,6 +7,7 @@ from the paper.
 import tensorflow as tf
 
 class VGG16_C(object):
+
     def __init__(self, n_classes=252, keep_prob=0.5, train=False):
         self.middle_shape = 25088
 
@@ -26,7 +27,7 @@ class VGG16_C(object):
                 self.convolve1 = tf.nn.conv2d(self.batch_norm, self.weights1, [1, 1, 1, 1], padding="SAME")
                 self.conv1 = tf.nn.relu(tf.nn.bias_add(self.convolve1, self.bias1))
             with tf.variable_scope("conv2"):
-                self.weights2= tf.get_variable('weights', [3, 3, 64, 64],
+                self.weights2 = tf.get_variable('weights', [3, 3, 64, 64],
                                                 initializer=tf.random_normal_initializer(stddev=1e-2))
                 self.bias2 = tf.get_variable('bias', [64], initializer=tf.constant_initializer(0.0))
                 self.convolve2 = tf.nn.conv2d(self.conv1, self.weights2, [1, 1, 1, 1], padding="SAME")
