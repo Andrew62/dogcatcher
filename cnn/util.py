@@ -14,7 +14,8 @@ def model_name(now):
 
 
 def accuracy(predictions, labels):
-    return (np.sum(np.argmax(predictions, 1) == np.argmax(labels, 1)) * 1.) / predictions.shape[0]
+    total = np.sum(np.argmax(predictions, 1) == np.argmax(labels, 1))
+    return total, (total * 1.) / predictions.shape[0]
 
 
 def pkl_dump(obj, fp):
@@ -53,4 +54,13 @@ def get_last_checkpoint(model_dir):
             most_recent_time = created_time
             most_recent_ckpt = ckpt_path
     return most_recent_ckpt
+
+def get_message(i, minibatch_accuracy, start, avg_loss, correct):
+    subj = 'Iteration {0} Minibatch accuracy: {1:0.2%}'.format(i + 1, minibatch_accuracy)
+    msg = "\n" + "*" * 50
+    msg += '\nMinibatch loss at step {0}: {1:0.6f} ({2} correct)\n'.format(i + 1, avg_loss, correct)
+    msg += subj + '\n'
+    msg += 'Minibatch time: {0:0.0f} secs\n'.format(time.time() - start)
+    msg += time.ctime()
+    return subj, msg
 
