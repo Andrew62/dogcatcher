@@ -7,17 +7,23 @@ from the paper.
 import tensorflow as tf
 
 class VGG16_C(object):
-    def __init__(self, n_classes=252):
+    def __init__(self, n_classes=252, keep_prob=0.5, train=False):
+        self.middle_shape = 25088
+
+        self.keep_prob = tf.constant(keep_prob, name="Dropout", dtype=tf.float32)
 
         self.input_data = tf.placeholder(dtype=tf.float32, name='input_data')#, shape=[10, 224, 224, 3])
 
-        self.mean_subtract = tf.sub(self.input_data, tf.reduce_mean(self.input_data, reduction_indices=0))
+        with tf.variable_scope('batch_norm'):
+            mean, var = tf.nn.moments(self.input_data, axes=[0, 1, 2])
+            self.batch_norm = tf.nn.batch_normalization(self.input_data, mean, var, offset=None, scale=None,
+                                                        variance_epsilon=1e4)
 
         with tf.variable_scope("group1_64"):
             with tf.variable_scope("conv1"):
                 self.weights1 = tf.get_variable('weights',[3, 3, 3, 64], initializer=tf.random_normal_initializer(stddev=1e-2))
                 self.bias1 = tf.get_variable('bias', [64], initializer=tf.constant_initializer(0.0))
-                self.convolve1 = tf.nn.conv2d(self.mean_subtract, self.weights1, [1, 1, 1, 1], padding="SAME")
+                self.convolve1 = tf.nn.conv2d(self.batch_norm, self.weights1, [1, 1, 1, 1], padding="SAME")
                 self.conv1 = tf.nn.relu(tf.nn.bias_add(self.convolve1, self.bias1))
             with tf.variable_scope("conv2"):
                 self.weights2= tf.get_variable('weights', [3, 3, 64, 64],
@@ -107,28 +113,31 @@ class VGG16_C(object):
                 self.convolve13 = tf.nn.conv2d(self.conv12, self.weights13, [1, 1, 1, 1], padding="SAME")
                 self.conv13 = tf.nn.relu(tf.nn.bias_add(self.convolve13, self.bias13))
             self.pool5 = tf.nn.max_pool(self.conv13, [1, 3, 3, 1], [1, 2, 2, 1], "SAME", name="pool5")
-
-            middle_shape = 25088
-
-            self.fc6 = tf.reshape(self.pool5, [-1, middle_shape], 'fc6')
+            self.fc6 = tf.reshape(self.pool5, [-1, self.middle_shape], 'fc6')
 
         with tf.variable_scope("group6_fc"):
 
-            with tf.variable_scope("fc7"):
-                self.weights14 = tf.get_variable('weights', [middle_shape, 4096],
+            with tf.variable_scope("fc1"):
+                self.weights14 = tf.get_variable('weights', [self.middle_shape, 4096],
                                                  initializer=tf.random_normal_initializer(stddev=1e-2))
                 self.bias14 = tf.get_variable('bias', [4096], initializer=tf.constant_initializer(0.0))
-                self.fc7 = tf.nn.relu(tf.nn.bias_add(tf.matmul(self.fc6, self.weights14), self.bias14))
-            with tf.variable_scope("fc8"):
+                self.fc1 = tf.nn.relu(tf.nn.bias_add(tf.matmul(self.fc6, self.weights14), self.bias14))
+                if train is True:
+                    self.fc1 = tf.nn.dropout(self.fc1, self.keep_prob)
+
+            with tf.variable_scope("fc2"):
                 self.weights15 = tf.get_variable('weights', [4096, 4096],
                                                  initializer=tf.random_normal_initializer(stddev=1e-2))
                 self.bias15 = tf.get_variable('bias', [4096], initializer=tf.constant_initializer(0.0))
-                self.fc8 = tf.nn.relu(tf.nn.bias_add(tf.matmul(self.fc7, self.weights15), self.bias15))
+                self.fc2 = tf.nn.relu(tf.nn.bias_add(tf.matmul(self.fc1, self.weights15), self.bias15))
+                if train is True:
+                    self.fc2 = tf.nn.dropout(self.fc2, self.keep_prob)
+
             with tf.variable_scope("logits"):
                 self.weights16 = tf.get_variable('weights', [4096, n_classes],
                                                  initializer=tf.random_normal_initializer(stddev=1e-2))
                 self.bias16 = tf.get_variable('bias', [n_classes], initializer=tf.constant_initializer(0.0))
-                self.logits = tf.nn.bias_add(tf.matmul(self.fc8, self.weights16), self.bias16)
+                self.logits = tf.nn.bias_add(tf.matmul(self.fc2, self.weights16), self.bias16)
 
         self.softmax = tf.nn.softmax(self.logits, 'softmax')
 
