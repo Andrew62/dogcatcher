@@ -19,16 +19,6 @@ from config import workspace
 from datetime import datetime
 
 
-def get_message(i, minibatch_accuracy, start, avg_loss):
-    subj = 'Iteration {0} Minibatch accuracy: {1:0.2%}'.format(i + 1, minibatch_accuracy)
-    msg = "\n" + "*" * 50
-    msg += '\nMinibatch loss at step {0}: {1:0.9f}\n'.format(i + 1, avg_loss)
-    msg += subj + '\n'
-    msg += 'Minibatch time: {0:0.0f} secs\n'.format(time.time() - start)
-    msg += time.ctime()
-    return subj, msg
-
-
 def train_alexnet(debug=False):
     if debug is True:
         print "DEBUG MODE"
@@ -77,8 +67,8 @@ def train_alexnet(debug=False):
         merged = tf.merge_all_summaries()
 
     sess = tf.Session(graph=graph)
-    summary_writer = tf.train.SummaryWriter(os.path.join(workspace.alexnet_models, "summaries",
-                                                         time.strftime("%Y%m%d%H%M%S")), graph=graph)
+    summary_writer = tf.train.SummaryWriter(os.path.join(workspace.alexnet_summary, time.strftime("%Y%m%d%H%M%S")),
+                                            graph=graph)
     with sess.as_default():
         sess.run(initop)
         print "\n" + "*" * 50
@@ -108,8 +98,8 @@ def train_alexnet(debug=False):
 
                 if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
                     avg_loss = sess_loss.mean()
-                    minibatch_accuracy = util.accuracy(predictions, train_lab_vec)
-                    subj, msg = get_message(i, minibatch_accuracy, start, avg_loss)
+                    total_correct, minibatch_accuracy = util.accuracy(predictions, train_lab_vec)
+                    subj, msg = util.get_message(i, minibatch_accuracy, start, avg_loss, total_correct)
                     print msg
                     summary_writer.add_summary(summary, i)
 
