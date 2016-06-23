@@ -28,7 +28,7 @@ class AlxNet(object):
                 self.bias1 = tf.Variable(tf.constant(1.0, shape=[96], dtype=tf.float32))
                 self.conv1 = tf.nn.conv2d(self.batch_norm, self.weights1, [1, 4, 4, 1], 'SAME')
                 self.hidden1 = tf.nn.relu(self.conv1 + self.bias1)
-                self.response_norm1 = tf.nn.local_response_normalization(self.conv1, depth_radius=5, alpha=1e-3,
+                self.response_norm1 = tf.nn.local_response_normalization(self.hidden1, depth_radius=5, alpha=1e-3,
                                                                     beta=0.75, bias=2.0)
             self.pool1 = tf.nn.max_pool(self.response_norm1, [1, 2, 2, 1], [1, 1, 1, 1], padding="VALID")
 
