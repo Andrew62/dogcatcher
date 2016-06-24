@@ -5,14 +5,16 @@ Author: Andrew
 Github: https://github.com/andrew62
 """
 import argparse
-from alexnet.train import train_alexnet
+from config import workspace
+from trainer import train_model
+from alexnet.alexnet import AlxNet
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", help="When True, runs a modified training script",
                         type=bool, default=True)
     args = parser.parse_args()
-    train_alexnet(debug=args.debug)
+    train_model(workspace.class_pkl, workspace.train_pkl, AlxNet, workspace.alexnet_models, debug=args.debug)
 
 if __name__ == '__main__':
     main()
