@@ -9,7 +9,7 @@ import tensorflow as tf
 class VGG19(object):
     def __init__(self, n_classes=252):
 
-        self.input_data = tf.placeholder(dtype=tf.float32, name='input_data', shape=[10,224,224,3])
+        self.input_data = tf.placeholder(dtype=tf.float32, name='input_data')
         self.middle_shape = 25088
 
         with tf.variable_scope('batch_norm'):
