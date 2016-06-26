@@ -13,7 +13,7 @@ class VGG16_C(object):
 
         self.keep_prob = tf.constant(keep_prob, name="Dropout", dtype=tf.float32)
 
-        self.input_data = tf.placeholder(dtype=tf.float32, name='input_data')#, shape=[10, 224, 224, 3])
+        self.input_data = tf.placeholder(dtype=tf.float32, name='input_data')
 
         with tf.variable_scope('batch_norm'):
             mean, var = tf.nn.moments(self.input_data, axes=[0, 1, 2])
@@ -33,7 +33,7 @@ class VGG16_C(object):
                 self.convolve2 = tf.nn.conv2d(self.conv1, self.weights2, [1, 1, 1, 1], padding="SAME")
                 self.conv2 = tf.nn.relu(tf.nn.bias_add(self.convolve2, self.bias2))
 
-            self.pool1 = tf.nn.max_pool(self.conv2, [1, 3, 3, 1], [1, 2, 2, 1], 'SAME', name='pool1')
+            self.pool1 = tf.nn.max_pool(self.conv2, [1, 2, 2, 1], [1, 2, 2, 1], 'SAME', name='pool1')
 
         with tf.variable_scope("group2_128"):
             with tf.variable_scope("conv3"):
@@ -48,7 +48,7 @@ class VGG16_C(object):
                 self.bias4 = tf.get_variable('bias', [128], initializer=tf.constant_initializer(0.0))
                 self.convolve4 = tf.nn.conv2d(self.conv3, self.weights4, [1, 1, 1, 1], padding="SAME")
                 self.conv4 = tf.nn.relu(tf.nn.bias_add(self.convolve4, self.bias4))
-            self.pool2 = tf.nn.max_pool(self.conv4, [1, 3, 3, 1], [1, 2, 2, 1], 'SAME', name='pool2')
+            self.pool2 = tf.nn.max_pool(self.conv4, [1, 2, 2, 1], [1, 2, 2, 1], 'SAME', name='pool2')
 
         with tf.variable_scope("group3_256"):
             with tf.variable_scope("conv5"):
@@ -69,7 +69,7 @@ class VGG16_C(object):
                 self.bias7 = tf.get_variable('bias', [256], initializer=tf.constant_initializer(0.0))
                 self.convolve7 = tf.nn.conv2d(self.conv6, self.weights7, [1, 1, 1, 1], padding="SAME")
                 self.conv7 = tf.nn.relu(tf.nn.bias_add(self.convolve7, self.bias7))
-            self.pool3 = tf.nn.max_pool(self.conv7, [1, 3, 3, 1], [1, 2, 2, 1], 'SAME', name='pool3')
+            self.pool3 = tf.nn.max_pool(self.conv7, [1, 2, 2, 1], [1, 2, 2, 1], 'SAME', name='pool3')
 
         with tf.variable_scope("group4_512"):
             with tf.variable_scope("conv8"):
@@ -85,12 +85,12 @@ class VGG16_C(object):
                 self.convolve9 = tf.nn.conv2d(self.conv8, self.weights9, [1, 1, 1, 1], padding="SAME")
                 self.conv9 = tf.nn.relu(tf.nn.bias_add(self.convolve9, self.bias9))
             with tf.variable_scope("conv10"):
-                self.weights10 = tf.get_variable('weights', [1, 1, 512, 512],
+                self.weights10 = tf.get_variable('weights', [3, 3, 512, 512],
                                                  initializer=tf.random_normal_initializer(stddev=1e-2))
                 self.bias10 = tf.get_variable('bias', [512], initializer=tf.constant_initializer(0.0))
                 self.convolve10 = tf.nn.conv2d(self.conv9, self.weights10, [1, 1, 1, 1], padding="SAME")
                 self.conv10 = tf.nn.relu(tf.nn.bias_add(self.convolve10, self.bias10))
-            self.pool4 = tf.nn.max_pool(self.conv10, [1, 3, 3, 1], [1, 2, 2, 1], 'SAME', name="pool4")
+            self.pool4 = tf.nn.max_pool(self.conv10, [1, 2, 2, 1], [1, 2, 2, 1], 'SAME', name="pool4")
 
         with tf.variable_scope("group5_512"):
             with tf.variable_scope("conv11"):
@@ -113,7 +113,7 @@ class VGG16_C(object):
                 self.bias13 = tf.get_variable('bias', [512], initializer=tf.constant_initializer(0.0))
                 self.convolve13 = tf.nn.conv2d(self.conv12, self.weights13, [1, 1, 1, 1], padding="SAME")
                 self.conv13 = tf.nn.relu(tf.nn.bias_add(self.convolve13, self.bias13))
-            self.pool5 = tf.nn.max_pool(self.conv13, [1, 3, 3, 1], [1, 2, 2, 1], "SAME", name="pool5")
+            self.pool5 = tf.nn.max_pool(self.conv13, [1, 2, 2, 1], [1, 2, 2, 1], "SAME", name="pool5")
             self.fc6 = tf.reshape(self.pool5, [-1, self.middle_shape], 'fc6')
 
         with tf.variable_scope("group6_fc"):

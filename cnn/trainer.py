@@ -10,10 +10,10 @@ import time
 import util
 import shutil
 import tensorflow as tf
+from data import DataSet
 from msg import send_mail
 from encoder import OneHot
 from datetime import datetime
-from tf_data import ImageProducer
 
 
 def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
@@ -37,13 +37,10 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
 
     classes = util.pkl_load(class_pkl)
     encoder = OneHot(classes)
-    train_files = util.pkl_load(train_pkl)
-    image_paths = train_files[:, 1]
-    image_labels = train_files[:, 0]
+    data = DataSet(train_pkl)
 
     graph = tf.Graph()
     with graph.as_default():
-        data = ImageProducer(image_paths, image_labels, batch_size=BATCH_SIZE)
         model = model(n_classes, train=train)
         train_labels_placeholder = tf.placeholder(dtype=tf.float32, name="train_labels")
 
@@ -53,7 +50,9 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
         tf.scalar_summary('loss', loss)
         optimizer = tf.train.AdamOptimizer(learning_rate=0.01).minimize(loss)
 
-        saver = tf.train.Saver()
+        trainable_vars = tf.trainable_variables()
+
+        saver = tf.train.Saver(trainable_vars)
         initop = tf.initialize_all_variables()
         merged = tf.merge_all_summaries()
 
@@ -70,44 +69,38 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
         else:
             print "Initialized"
 
-        print "Training on {0} exmaples".format(len(image_labels))
+        print "Training on {0} exmaples".format(len(data.data))
 
         print "\n", "*" * 50
         print "Batch size: {0} images".format(BATCH_SIZE)
         epoch = 0
         i = 0
-
         try:
-            coord = tf.train.Coordinator()
-            threads = data.start(sess, coord)
             while epoch <= EPOCHS:
                 start = time.time()
-                try:
-                    train_labels, train_data = data.get_batch(sess)
-                    train_lab_vec = encoder.encode(train_labels)
-                    feed = {model.input_data: train_data,
-                            train_labels_placeholder: train_lab_vec}
-                    _, sess_loss, predictions, summary = sess.run([optimizer, loss, model.softmax, merged],
-                                                                  feed_dict=feed)
+                train_data, train_labels, epoch = data.batch(BATCH_SIZE)
+                train_lab_vec = encoder.encode(train_labels)
+                feed = {model.input_data: train_data,
+                        train_labels_placeholder: train_lab_vec}
+                _, sess_loss, predictions, summary = sess.run([optimizer, loss, model.softmax, merged],
+                                                              feed_dict=feed)
 
-                    if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
-                        avg_loss = sess_loss.mean()
-                        total_correct, minibatch_accuracy = util.accuracy(predictions, train_lab_vec)
-                        subj, msg = util.get_message(i, minibatch_accuracy, start, avg_loss, total_correct)
-                        print msg
-                        summary_writer.add_summary(summary, i)
+                if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
+                    avg_loss = sess_loss.mean()
+                    total_correct, minibatch_accuracy = util.accuracy(predictions, train_lab_vec)
+                    subj, msg = util.get_message(i, minibatch_accuracy, start, avg_loss, total_correct)
+                    print msg
+                    summary_writer.add_summary(summary, i)
 
-                        if (((i + 1) % EMAIL_EVERY) == 0) and (EMAILING is True):
-                            send_mail("dogcatcher update: " + subj, msg)
+                    if (((i + 1) % EMAIL_EVERY) == 0) and (EMAILING is True):
+                        send_mail("dogcatcher update: " + subj, msg)
 
-                    if ((i + 1) % SAVE_ITER) == 0:
-                        saver.save(sess, os.path.join(model_dir, util.model_name(datetime.now())))
-                        print "\n" + "*" * 50
-                        print "Successful checkpoint iteration {0}".format(i + 1)
-                    i += 1
-                except tf.errors.OutOfRangeError:
-                    # end of epoch
-                    epoch += 1
+                if ((i + 1) % SAVE_ITER) == 0:
+                    saver.save(sess, os.path.join(model_dir, util.model_name(datetime.now())))
+                    print "\n" + "*" * 50
+                    print "Successful checkpoint iteration {0}".format(i + 1)
+                i += 1
+
             msg = "\n" + "*" * 50
             msg += "\n" + "*" * 50
             subj = "Training complete!"
@@ -119,8 +112,6 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
             print msg
 
         finally:
-            coord.request_stop()
-            coord.join(threads, stop_grace_period_secs=2)
             saver.save(sess, os.path.join(model_dir, util.model_name(datetime.now())))
             outg = os.path.join(model_dir, "graph")
             if os.path.exists(outg):

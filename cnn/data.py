@@ -23,76 +23,43 @@ from skimage.io import imread
 
 
 class DataSet(object):
-    def __init__(self, train_pkl, test_pkl, valid_pkl, class_pkl, **kwargs):
-        self.tracker = {'train':{}, 'test':{}, 'valid':{}}
-        self.tracker['train']['data'] = self.pkl_load(train_pkl)
-        self.tracker['test']['data'] = self.pkl_load(test_pkl)
-        self.tracker['valid']['data'] = self.pkl_load(valid_pkl)
-        self.classes = self.pkl_load(class_pkl)
+    def __init__(self, data_pkl, **kwargs):
+        self.data = self.pkl_load(data_pkl)
         self.img_shape = kwargs.pop('img_shape', (224,224,3))
-        
-        for item in ['train', 'test', 'valid']:
-            self.tracker[item]['idx'] = 0
-            self.tracker[item]['epoch'] = 0
+        self.idx = 0
+        self.epoch = 0
 
     def pkl_load(self, fp):
         with open(fp, 'rb') as infile:
             return np.random.permutation(pickle.load(infile))
-            
-    @property
-    def n_classes(self):
-        return len(self.classes)
-        
-    def batch(self, batch_size, name='train'):
+
+    def batch(self, batch_size):
         """
         need to just shuffle then return batch size not keep
         track of current idx
         """
-        stop = self.tracker[name]['idx'] + batch_size
+        stop = self.idx + batch_size
         
-        if stop > self.tracker[name]['data'].shape[0]:
+        if stop > self.data.shape[0]:
             # If the slice goes beyond the number of rows, shuffle the whole
             # thing and start over
             print '\n', "*" * 50
             print "*" * 50
-            print "Shuffling {0} data...".format(name)
+            print "Shuffling data..."
             print "*" * 50
             print '\n', "*" * 50
 
-            self.tracker[name]['data'] = np.random.permutation(self.tracker[name]['data'])
-            self.tracker[name]['idx'] = 0
-            self.tracker[name]['epoch'] += 1
+            self.data = np.random.permutation(self.data)
+            self.idx = 0
+            self.epoch += 1
             
         batch_shape = (batch_size, self.img_shape[0], self.img_shape[1], self.img_shape[2])
         batch_data = np.ones(shape=batch_shape, dtype=np.float32)
         batch_labels = []
         for i in range(batch_size):
-            idx = self.tracker[name]['idx'] + i
-            row = self.tracker[name]['data'][idx, :]
+            idx = self.idx + i
+            row = self.data[idx, :]
             batch_data[i,:,:,:] = imread(row[1])
             batch_labels.append(row[0])
-        self.tracker[name]['idx'] += batch_size
-        return batch_data, batch_labels
-        
-    def train_batch(self, batch_size):
-        name = 'train'
-        samples, labels = self.batch(batch_size, name)
-        return samples, labels, self.tracker[name]['epoch']
-        
-    def test_batch(self, batch_size):
-        name='test'
-        samples, labels = self.batch(batch_size, name)
-        return samples, labels, self.tracker[name]['epoch']
-
-    def valid_batch(self, batch_size):
-        name = 'valid'
-        samples, labels = self.batch(batch_size, name)
-        return samples, labels, self.tracker[name]['epoch']
-    
-
-            
-        
-        
-        
-
-    
+        self.idx += batch_size
+        return batch_data, batch_labels, self.epoch
