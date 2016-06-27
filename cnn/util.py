@@ -59,7 +59,7 @@ def get_last_checkpoint(model_dir):
 def get_message(i, minibatch_accuracy, start, avg_loss, correct):
     subj = 'Iteration {0} Minibatch accuracy: {1:0.2%}'.format(i + 1, minibatch_accuracy)
     msg = "\n" + "*" * 50
-    msg += '\nMinibatch loss at step {0}: {1:0.6f} ({2} correct)\n'.format(i + 1, avg_loss, correct)
+    msg += '\nMinibatch loss at step {0}: {1:0.4f} ({2} correct)\n'.format(i + 1, avg_loss, correct)
     msg += subj + '\n'
     msg += 'Minibatch time: {0:0.0f} secs\n'.format(time.time() - start)
     msg += time.ctime()
