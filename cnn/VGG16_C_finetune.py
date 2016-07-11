@@ -57,9 +57,10 @@ with sess.as_default():
             # This mapping is weak and should use something more robust
             # like a tensorflow graph or checkpoint object
             for op in variables:
-                print op.name
+                # layers are loaded sequentially
                 if 'fc7' in op.name:
                     break
+                print op.name
                 layer_split = op.name.split("/")
                 layer, var = layer_split[0], layer_split[1].split(":")[0]
                 sess.run(op.assign(pretrained_features[layer][var]))
