@@ -61,7 +61,8 @@ with sess.as_default():
                 op_name = op.name.split(":")[0]
 
                 # want to train the last layer for new classes
-                if 'fc8' not in op_name:
+                if op_name not in set("fc7", "fc8"):
+                    print("Loading {0}".format(op_name))
                     layer, var = op_name.split("/")
                     sess.run(op.assign(pretrained_features[layer][var]))
         i = 0
