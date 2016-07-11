@@ -47,7 +47,7 @@ with sess.as_default():
         sess.run([initop])
         checkpoint = tf.train.get_checkpoint_state(model_dir)
 
-        if False:#checkpoint is not None:
+        if checkpoint is not None:
             saver.restore(sess, checkpoint.model_checkpoint_path)
             print("Weights restored!")
         else:
