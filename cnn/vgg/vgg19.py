@@ -15,7 +15,7 @@ class VGG19(object):
         with tf.variable_scope('batch_norm'):
             mean, var = tf.nn.moments(self.input_data, axes=[0, 1, 2])
             self.batch_norm = tf.nn.batch_normalization(self.input_data, mean, var, offset=None, scale=None,
-                                                        variance_epsilon=1e4)
+                                                        variance_epsilon=1e-6)
 
         with tf.variable_scope("group1"):
             with tf.variable_scope("conv1"):

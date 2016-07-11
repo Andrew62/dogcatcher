@@ -15,11 +15,17 @@ class VGG16_C(object):
 
         self.input_data = tf.placeholder(dtype=tf.float32, name='input_data')
 
+        with tf.variable_scope('batch_norm'):
+            mean, var = tf.nn.moments(self.input_data, axes=[0, 1, 2])
+            self.batch_norm = tf.nn.batch_normalization(self.input_data, mean, var, offset=1, scale=1,
+                                                        variance_epsilon=1e-6)
+
         with tf.variable_scope("conv1_1"):
             self.weights1 = tf.get_variable('weights',[3, 3, 3, 64], initializer=tf.random_normal_initializer(stddev=1e-2))
             self.bias1 = tf.get_variable("biases", [64], initializer=tf.constant_initializer(0.0))
-            self.convolve1 = tf.nn.conv2d(self.input_data, self.weights1, [1, 1, 1, 1], padding="SAME")
+            self.convolve1 = tf.nn.conv2d(self.batch_norm, self.weights1, [1, 1, 1, 1], padding="SAME")
             self.conv1 = tf.nn.relu(tf.nn.bias_add(self.convolve1, self.bias1))
+
         with tf.variable_scope("conv1_2"):
             self.weights2 = tf.get_variable('weights', [3, 3, 64, 64],
                                             initializer=tf.random_normal_initializer(stddev=1e-2))
