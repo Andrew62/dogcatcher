@@ -34,8 +34,8 @@ with graph.as_default():
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
     tf.scalar_summary('loss', loss)
     optimizer = tf.train.AdamOptimizer(learning_rate=0.01).minimize(loss)
-    trainable_vars = tf.trainable_variables()
-    saver = tf.train.Saver(trainable_vars, keep_checkpoint_every_n_hours=24)
+    variables = tf.all_variables()
+    saver = tf.train.Saver(variables, keep_checkpoint_every_n_hours=24)
     initop = tf.initialize_all_variables()
     merged = tf.merge_all_summaries()
 
@@ -47,7 +47,7 @@ with sess.as_default():
         sess.run([initop])
         checkpoint = tf.train.get_checkpoint_state(model_dir)
 
-        if checkpoint is not None:
+        if False:#checkpoint is not None:
             saver.restore(sess, checkpoint.model_checkpoint_path)
             print("Weights restored!")
         else:
@@ -56,15 +56,14 @@ with sess.as_default():
             # This will map the numpy VGG16 weights to the tensorflow ops
             # This mapping is weak and should use something more robust
             # like a tensorflow graph or checkpoint object
-            for op in trainable_vars:
-                #Tensorflow ops are of the form "scope/varname:0"
-                op_name = op.name.split(":")[0]
+            for op in variables:
+                print op.name
+                if 'fc7' in op.name:
+                    break
+                layer_split = op.name.split("/")
+                layer, var = layer_split[0], layer_split[1].split(":")[0]
+                sess.run(op.assign(pretrained_features[layer][var]))
 
-                # want to train the last layer for new classes
-                if not ("fc7" in op_name or "fc8" in op_name):
-                    print("Loading {0}".format(op_name))
-                    layer, var = op_name.split("/")
-                    sess.run(op.assign(pretrained_features[layer][var]))
         i = 0
         epochs = 0
         while epochs < n_epochs:
