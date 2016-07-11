@@ -13,7 +13,7 @@ import tensorflow as tf
 from data import DataSet
 from encoder import OneHot
 from config import workspace
-from vgg.vgg16_C import VGG16_C
+from vgg.vgg16_finetune import VGG16_C
 
 
 n_epochs = 60
