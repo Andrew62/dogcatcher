@@ -88,7 +88,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
                 if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
                     avg_loss = sess_loss.mean()
                     total_correct, minibatch_accuracy = util.accuracy(predictions, train_lab_vec)
-                    subj, msg = util.get_message(i, minibatch_accuracy, start, avg_loss, total_correct)
+                    subj, msg = util.get_message(i, minibatch_accuracy, start, avg_loss, total_correct, data.epoch)
                     print msg
                     summary_writer.add_summary(summary, i)
 
