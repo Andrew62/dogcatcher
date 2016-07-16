@@ -44,10 +44,9 @@ class DataSet(object):
             # If the slice goes beyond the number of rows, shuffle the whole
             # thing and start over
             print '\n', "*" * 50
-            print "*" * 50
-            print "Shuffling data..."
-            print "*" * 50
-            print '\n', "*" * 50
+            print "Shuffling data...."
+            print "Starting Epoch {0}".format(self.epoch + 1)
+            print "*" * 50, '\n'
 
             self.data = np.random.permutation(self.data)
             self.idx = 0
