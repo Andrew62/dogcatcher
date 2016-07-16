@@ -17,7 +17,7 @@ from vgg.vgg16_finetune import VGG16_C
 
 
 n_epochs = 60
-batch_size = 32
+batch_size = 128
 message_every = 50
 
 pretrained_weights_npy = workspace.vgg16c_weights

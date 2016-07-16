@@ -12,7 +12,7 @@ from alexnet.alexnet import AlxNet
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", help="When True, runs a modified training script",
-                        type=bool, default=True)
+                        type=bool, default=False)
     args = parser.parse_args()
     train_model(workspace.class_pkl, workspace.train_pkl, AlxNet, workspace.alexnet_models, debug=args.debug)
 
