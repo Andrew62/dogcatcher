@@ -6,7 +6,7 @@ from the paper.
 
 import tensorflow as tf
 
-class VGG16_C(object):
+class VGG16_D(object):
 
     def __init__(self, n_classes=1000, keep_prob=0.5, train=False):
         self.middle_shape = 25088
@@ -14,16 +14,17 @@ class VGG16_C(object):
         self.keep_prob = tf.constant(keep_prob, name="Dropout", dtype=tf.float32)
 
         self.input_data = tf.placeholder(dtype=tf.float32, name='input_data')
-
-        with tf.variable_scope('batch_norm'):
-            mean, var = tf.nn.moments(self.input_data, axes=[0, 1, 2])
-            self.batch_norm = tf.nn.batch_normalization(self.input_data, mean, var, offset=1, scale=1,
-                                                        variance_epsilon=1e-6)
-
+        
+        mean = tf.constant([125.974950491, 121.990847064, 102.991749558], 
+                           dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
+        
+        self.mean_subtract = self.input_data - mean
+        
         with tf.variable_scope("conv1_1"):
             self.weights1 = tf.get_variable('weights',[3, 3, 3, 64], initializer=tf.random_normal_initializer(stddev=1e-2))
             self.bias1 = tf.get_variable("biases", [64], initializer=tf.constant_initializer(0.0))
-            self.convolve1 = tf.nn.conv2d(self.batch_norm, self.weights1, [1, 1, 1, 1], padding="SAME")
+            self.convolve1 = tf.nn.conv2d(self.mean_subtract, self.weights1, [1, 1, 1, 1],
+                                          padding="SAME")
             self.conv1 = tf.nn.relu(tf.nn.bias_add(self.convolve1, self.bias1))
 
         with tf.variable_scope("conv1_2"):

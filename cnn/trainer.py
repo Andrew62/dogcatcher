@@ -9,6 +9,7 @@ import os
 import time
 import util
 import shutil
+import traceback
 import tensorflow as tf
 from data import DataSet
 from msg import send_mail
@@ -27,8 +28,8 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
     else:
         MESSAGE_EVERY = 25
         EMAILING = True
-        BATCH_SIZE = 128
-        SAVE_ITER = 1000
+        BATCH_SIZE = 32
+        SAVE_ITER = 5000
         EPOCHS = 90
 
     EMAIL_EVERY = MESSAGE_EVERY * 80
@@ -106,7 +107,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
             subj = "Training complete!"
             print msg
         except Exception as e:
-            print e
+            traceback.print_exc()
             subj = "DOGCATCHER STOPPED!"
             msg = "Failed after {0} steps".format(i)
             print msg
