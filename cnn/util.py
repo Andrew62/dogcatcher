@@ -57,9 +57,9 @@ def get_last_checkpoint(model_dir):
     return most_recent_ckpt
 
 def get_message(i, minibatch_accuracy, start, avg_loss, correct, epoch):
-    subj = 'Iteration {0} Minibatch accuracy: {1:0.2%}'.format(i + 1, minibatch_accuracy)
+    subj = 'Iteration {0} Minibatch accuracy: {1:0.2%} ({2} correct)'.format(i + 1, minibatch_accuracy, correct)
     msg = "\n" + "*" * 50
-    msg += '\nMinibatch loss at step {0}: {1:0.4f} ({2} correct)\n'.format(i + 1, avg_loss, correct)
+    msg += '\nMinibatch loss at step {0}: {1:0.4f}\n'.format(i + 1, avg_loss)
     msg += subj + '\n'
     msg += "Epoch {0}\n".format(epoch)
     msg += 'Minibatch time: {0:0.0f} secs\n'.format(time.time() - start)
