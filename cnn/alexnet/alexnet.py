@@ -17,16 +17,16 @@ class AlxNet(object):
         # Used to convert the final conv layer to a dense layer
         self.middle_shape = 43264
 
-        with tf.variable_scope('batch_norm'):
-            mean, var = tf.nn.moments(self.input_data, axes=[0, 1, 2])
-            self.batch_norm = tf.nn.batch_normalization(self.input_data, mean, var, offset=None, scale=None,
-                                                        variance_epsilon=1e-6)
+        mean = tf.constant([125.974950491, 121.990847064, 102.991749558],
+                           dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
+
+        self.mean_subtract = self.input_data - mean
 
         with tf.variable_scope("pool1"):
             with tf.variable_scope('conv1'):
                 self.weights1 = tf.Variable(tf.truncated_normal([11, 11, 3, 96], dtype=tf.float32, stddev=1e-2))
                 self.bias1 = tf.Variable(tf.constant(1.0, shape=[96], dtype=tf.float32))
-                self.conv1 = tf.nn.conv2d(self.batch_norm, self.weights1, [1, 4, 4, 1], 'SAME')
+                self.conv1 = tf.nn.conv2d(self.mean_subtract, self.weights1, [1, 4, 4, 1], 'SAME')
                 self.hidden1 = tf.nn.relu(self.conv1 + self.bias1)
                 self.response_norm1 = tf.nn.local_response_normalization(self.hidden1, depth_radius=5, alpha=1e-3,
                                                                     beta=0.75, bias=2.0)
