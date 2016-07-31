@@ -6,15 +6,16 @@ Github: https://github.com/andrew62
 """
 
 import os
-import util
 import time
+
 import numpy as np
 import tensorflow as tf
+
+import util
+from cnn.networks.vgg16_finetune import VGG16_C
+from config import workspace
 from data import DataSet
 from encoder import OneHot
-from config import workspace
-from vgg.vgg16_finetune import VGG16_C
-
 
 n_epochs = 60
 batch_size = 128

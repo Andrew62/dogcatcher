@@ -58,7 +58,7 @@ class DataSet(object):
         for i in range(batch_size):
             idx = self.idx + i
             row = self.data[idx, :]
-            batch_data[i,:,:,:] = np.array(Image.open((row[1])))
+            batch_data[i, :, :, :] = np.array(Image.open((row[1])))
             batch_labels.append(row[0])
         self.idx += batch_size
         return batch_data, batch_labels, self.epoch

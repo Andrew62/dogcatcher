@@ -5,9 +5,11 @@ Author: Andrew
 Github: https://github.com/andrew62
 """
 import argparse
+
+from cnn.networks.alexnet import AlxNet
 from config import workspace
 from trainer import train_model
-from alexnet.alexnet import AlxNet
+
 
 def main():
     parser = argparse.ArgumentParser()
