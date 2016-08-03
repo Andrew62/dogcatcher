@@ -32,7 +32,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
         SAVE_ITER = 5000
         EPOCHS = 90
 
-    EMAIL_EVERY = MESSAGE_EVERY * 80
+    EMAIL_EVERY = MESSAGE_EVERY * 250
     n_classes = 252
     train = True
 
