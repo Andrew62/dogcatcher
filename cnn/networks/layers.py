@@ -34,7 +34,7 @@ def conv2d(inputs, n_out, kernel_height, kernel_width, **kwargs):
 
     with tf.variable_scope(name) as scope:
         weights = tf.get_variable('weights', [kernel_height, kernel_width, channles_in, n_out],
-                                  initializer=tf.random_normal_initializer(stddev=1e-2))
+                                  initializer=tf.truncated_normal_initializer(stddev=1e-2))
         convolve = tf.nn.conv2d(inputs, weights, [1, conv_height, conv_width, 1],
                                 padding=padding)
         if bias is True:
@@ -69,7 +69,7 @@ def affine(inputs, n_out, **kwargs):
         n_in = input_shape[-1]
 
     with tf.variable_scope(name) as scope:
-        weights = tf.get_variable('weights', [n_in, n_out], initializer=tf.random_normal_initializer(stddev=1e-2))
+        weights = tf.get_variable('weights', [n_in, n_out], initializer=tf.truncated_normal_initializer(stddev=1e-2))
         fc = tf.matmul(inputs, weights)
 
         if bias is True:
