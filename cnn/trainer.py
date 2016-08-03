@@ -28,11 +28,11 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
     else:
         MESSAGE_EVERY = 25
         EMAILING = True
-        BATCH_SIZE = 64
+        BATCH_SIZE = 16
         SAVE_ITER = 5000
         EPOCHS = 90
 
-    EMAIL_EVERY = MESSAGE_EVERY * 80
+    EMAIL_EVERY = MESSAGE_EVERY * 250
     n_classes = 252
     train = True
 

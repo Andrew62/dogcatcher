@@ -32,10 +32,12 @@ class MPTransformer(Process):
         return 'centered', image.resize((self.pixels, self.pixels))
         
     def rotate(self, image, degrees):
-        return 'rotate_{0}'.format(degrees), image.rotate(degrees)
+        _, img = self.image_center(image.rotate(degrees))
+        return 'rotate_{0}'.format(degrees), img
         
     def flip(self, image):
-        return 'flipped', image.transpose(0)
+        _, img = self.image_center(image.transpose(0))
+        return 'flipped', img
     
     def save_hashes(self, outdir, name, img_hashes):
         with open(os.path.join(outdir, "{0}.pkl".format(name)), 'wb') as target:

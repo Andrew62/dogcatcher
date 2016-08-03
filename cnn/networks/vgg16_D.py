@@ -10,7 +10,7 @@ import tensorflow as tf
 class VGG16_D(object):
     def __init__(self, n_classes=1000, train=False):
 
-        self.input_data = tf.placeholder(dtype=tf.float32, name='input_data', shape=[32, 224, 224, 3])
+        self.input_data = tf.placeholder(dtype=tf.float32, name='input_data', shape=[None, 224, 224, 3])
 
         mean = tf.constant([125.974950491, 121.990847064, 102.991749558],
                            dtype=tf.float32, name='img_mean')
