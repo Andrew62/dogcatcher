@@ -17,6 +17,9 @@ class VGG16_D(object):
 
         self.mean_subtract = self.input_data - mean
 
+        if train is True:
+            tf.image_summary("mean_subtract", self.mean_subtract)
+
         self.layers = []
 
         inputs = self.input_data
@@ -33,6 +36,9 @@ class VGG16_D(object):
 
                 inputs = tf.nn.max_pool(conv, [1, 2, 2, 1], [1, 2, 2, 1], padding="SAME")
                 self.layers.append(inputs)
+
+                if train is True:
+                    layers.variable_summaries(inputs, "pool_{}".format(i + 1))
 
         for i in range(2):
             inputs = layers.affine(inputs, 4096, name="fc_{}".format(i + 1))
