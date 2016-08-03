@@ -38,7 +38,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
 
     classes = util.pkl_load(class_pkl)
     encoder = OneHot(classes)
-    data = DataSet(train_pkl)
+    data = DataSet(train_pkl, BATCH_SIZE)
 
     graph = tf.Graph()
     with graph.as_default():
@@ -79,7 +79,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
         try:
             while epoch <= EPOCHS:
                 start = time.time()
-                train_data, train_labels, epoch = data.batch(BATCH_SIZE)
+                train_data, train_labels, epoch = data.batch()
                 train_lab_vec = encoder.encode(train_labels)
                 feed = {model.input_data: train_data,
                         train_labels_placeholder: train_lab_vec}

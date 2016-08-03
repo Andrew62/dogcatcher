@@ -19,31 +19,29 @@ from cnn.encoder import OneHot
 
 
 if __name__ == "__main__":
-    dat = DataSet(workspace.train_pkl, img_shape=(224,224,3))
+    dat = DataSet(workspace.train_pkl, 32, img_shape=(224,224,3))
 
     start = time.time()
     n_iter = 10
     epoch = 0
-    iter= 0
-    while epoch < 1:
-        train, lab, epoch = dat.batch(20)
+    while epoch < 4:
+        train, lab, epoch = dat.batch()
         print "Input label: {0}\n".format(lab[0]),
-        if iter > 10:
-            break
-        iter += 1
+        print epoch
+
 
     elapsed = time.time() - start
     print "Complete in {0:0.2f} seconds".format(elapsed)
     print "Average batch load {0:0.4f}".format(elapsed/(n_iter*1.))
 
 
-    f, (ax1, ax2) = plt.subplots(1, 2)
-    #will perform mean subtraction in network
-    hist, bins = np.histogram(train[1,:,:,:], bins=100)
-    width = .7 * (bins[1] - bins[0])
-    center = (bins[:-1] + bins[1:])/2
-    ax1.imshow(train[1,:,:,:])
-    ax1.set_title(lab[0])
-    ax2.bar(center, hist, align='center', width=width)
-    ax2.set_title("Example pixel distribution")
-    plt.show()
+    # f, (ax1, ax2) = plt.subplots(1, 2)
+    # #will perform mean subtraction in network
+    # hist, bins = np.histogram(train[1,:,:,:], bins=100)
+    # width = .7 * (bins[1] - bins[0])
+    # center = (bins[:-1] + bins[1:])/2
+    # ax1.imshow(train[1,:,:,:])
+    # ax1.set_title(lab[0])
+    # ax2.bar(center, hist, align='center', width=width)
+    # ax2.set_title("Example pixel distribution")
+    # plt.show()
