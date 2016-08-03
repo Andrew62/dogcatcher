@@ -2,6 +2,7 @@
 """
 Tensorflow implementation of AlexNet
 """
+
 import tensorflow as tf
 
 class AlxNet(object):
@@ -18,7 +19,7 @@ class AlxNet(object):
         self.middle_shape = 43264
 
         mean = tf.constant([125.974950491, 121.990847064, 102.991749558],
-                           dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
+                           dtype=tf.float32, name='img_mean')
 
         self.mean_subtract = self.input_data - mean
 
