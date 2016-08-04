@@ -34,7 +34,7 @@ class VGG16_D(object):
                     conv = layers.conv2d(conv, n_out, 3, 3, name="conv_{}_3".format(i))
                     self.layers.append(conv)
 
-                inputs = tf.nn.max_pool(conv, [1, 2, 2, 1], [1, 2, 2, 1], padding="SAME")
+                inputs = tf.nn.max_pool(conv, [1, 2, 2, 1], [1, 2, 2, 1], padding="VALID")
                 self.layers.append(inputs)
 
                 if train is True:
@@ -57,4 +57,4 @@ if __name__ == "__main__":
     print vgg.mean_subtract.get_shape()
 
     for l in vgg.layers:
-        print l.name
+        print l.name, l.get_shape()
