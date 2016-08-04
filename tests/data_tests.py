@@ -24,12 +24,15 @@ if __name__ == "__main__":
 
     start = time.time()
     epoch = 0
+    n_iter = 0
     while epoch < 1:
         train, lab, epoch = dat.batch()
         print lab[0]
+        n_iter += 1
 
     elapsed = time.time() - start
     print "Complete in {0:0.2f} seconds".format(elapsed)
+    print "Average batch load {0:0.4f}".format(elapsed/(n_iter*1.))
 
 
     f, (ax1, ax2) = plt.subplots(1, 2)
