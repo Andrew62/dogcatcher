@@ -38,7 +38,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
 
     classes = util.pkl_load(class_pkl)
     encoder = OneHot(classes)
-    data = DataSet(train_pkl, BATCH_SIZE)
+    data = DataSet(train_pkl, BATCH_SIZE, EPOCHS)
 
     graph = tf.Graph()
     with graph.as_default():
@@ -76,6 +76,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
         print "Batch size: {0} images".format(BATCH_SIZE)
         epoch = 0
         i = 0
+        data.start()
         try:
             while epoch <= EPOCHS:
                 start = time.time()
