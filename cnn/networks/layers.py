@@ -34,7 +34,7 @@ def conv2d(inputs, n_out, kernel_height, kernel_width, **kwargs):
 
     with tf.variable_scope(name) as scope:
         weights = tf.get_variable('weights', [kernel_height, kernel_width, channles_in, n_out],
-                                  initializer=tf.random_normal_initializer(stddev=1e-2))
+                                  initializer=tf.truncated_normal_initializer(stddev=1e-1))
         convolve = tf.nn.conv2d(inputs, weights, [1, conv_height, conv_width, 1],
                                 padding=padding)
         if bias is True:
@@ -69,7 +69,7 @@ def affine(inputs, n_out, **kwargs):
         n_in = input_shape[-1]
 
     with tf.variable_scope(name) as scope:
-        weights = tf.get_variable('weights', [n_in, n_out], initializer=tf.random_normal_initializer(stddev=1e-2))
+        weights = tf.get_variable('weights', [n_in, n_out], initializer=tf.truncated_normal_initializer(stddev=1e-1))
         fc = tf.matmul(inputs, weights)
 
         if bias is True:
@@ -80,3 +80,15 @@ def affine(inputs, n_out, **kwargs):
             fc = tf.nn.relu(fc)
 
         return fc
+
+def variable_summaries(var, name):
+    """Attach a lot of summaries to a Tensor."""
+    with tf.name_scope('summaries'):
+        mean = tf.reduce_mean(var)
+        tf.scalar_summary('mean/' + name, mean)
+        with tf.name_scope('stddev'):
+            stddev = tf.sqrt(tf.reduce_sum(tf.square(var - mean)))
+        tf.scalar_summary('sttdev/' + name, stddev)
+        tf.scalar_summary('max/' + name, tf.reduce_max(var))
+        tf.scalar_summary('min/' + name, tf.reduce_min(var))
+        tf.histogram_summary(name, var)

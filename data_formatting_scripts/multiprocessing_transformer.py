@@ -29,13 +29,15 @@ class MPTransformer(Process):
         """
         reshapes, resizes, and returns a means subtracted image
         """
-        return 'centered', image.resize(self.pixels, self.pixels)
+        return 'centered', image.resize((self.pixels, self.pixels))
         
     def rotate(self, image, degrees):
-        return 'rotate_{0}'.format(degrees), image.rotate(degrees)
+        _, img = self.image_center(image.rotate(degrees))
+        return 'rotate_{0}'.format(degrees), img
         
     def flip(self, image):
-        return 'flipped', image.transpose(0)
+        _, img = self.image_center(image.transpose(0))
+        return 'flipped', img
     
     def save_hashes(self, outdir, name, img_hashes):
         with open(os.path.join(outdir, "{0}.pkl".format(name)), 'wb') as target:
@@ -45,8 +47,8 @@ class MPTransformer(Process):
         with open(indir, 'rb') as infile:
             return pickle.load(infile)
         
-    def processed_hash(self, outdir):
-        filep = os.path.join(outdir, "{0}.pkl")
+    def processed_hash(self, outdir, name):
+        filep = os.path.join(outdir, "{0}.pkl".format(name))
         if os.path.exists(filep):
             return self.load_hashes(filep)
         return set()
@@ -62,19 +64,23 @@ class MPTransformer(Process):
             try:
                 img_path = os.path.join(indir, img_file)
                 img = Image.open(img_path)
-                img_hash = hashlib.sha1(img.bytes()).digest()
+                arr = np.array(img)
+                if arr.shape[-1] != 3:
+                    continue
+                img_hash = hashlib.sha1(img.tobytes()).digest()
                 if img_hash in already_used:
                     duplicate_counter += 1
                     continue
                 already_used.add(img_hash)
-                layers = img.layers
-                if layers != 3:
-                    continue
                 valid_files.append(img_path)
             except IOError:
-                continue
+                print "Couldn't open that one right"
             except ValueError:
-                continue
+                print "Nothing witty here"
+            except IndexError:
+                print os.path.basename(img_file)
+                print "Not enough channles (Layers as Mary Barry would say)"
+                
         self.save_hashes(outdir, name, already_used)
         return valid_files, duplicate_counter, len(img_files)
         
@@ -132,3 +138,13 @@ Comleted in {4:0.2f} seconds""".format(name, success, duplicate_counter,
 
             if self.queue.empty():
                 break
+
+if __name__ == "__main__":
+    from Queue import Queue
+    q = Queue()
+    job = dict(name="Affenpinscher", indir="/home/andrew/Documents/dogcatcher/raw_data/Affenpinscher",
+               outdir="/home/andrew/Downloads")
+    q.put(job)
+    process = MPTransformer('1', q)
+    process.run()
+    

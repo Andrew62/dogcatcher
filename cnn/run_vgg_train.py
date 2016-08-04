@@ -6,7 +6,7 @@ Github: https://github.com/andrew62
 """
 import argparse
 
-from cnn.networks.vgg16_D import VGG16_D
+from networks.vgg16_D import VGG16_D
 from config import workspace
 from trainer import train_model
 
