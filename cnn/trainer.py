@@ -49,7 +49,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
 
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
         tf.scalar_summary('loss', loss)
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
+        optimizer = tf.train.GradientDescentOptimizer(0.01).minimize(loss)
 
         trainable_vars = tf.trainable_variables()
 
