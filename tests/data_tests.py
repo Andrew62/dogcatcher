@@ -19,18 +19,16 @@ from cnn.encoder import OneHot
 
 
 if __name__ == "__main__":
-    dat = DataSet(workspace.train_pkl, img_shape=(224,224,3))
+    dat = DataSet(workspace.test_pkl, 32, 3, img_shape=(224,224,3))
+    dat.start()
 
     start = time.time()
-    n_iter = 10
     epoch = 0
-    iter= 0
+    n_iter = 0
     while epoch < 1:
-        train, lab, epoch = dat.batch(20)
-        print "Input label: {0}\n".format(lab[0]),
-        if iter > 10:
-            break
-        iter += 1
+        train, lab, epoch = dat.batch()
+        print lab[0]
+        n_iter += 1
 
     elapsed = time.time() - start
     print "Complete in {0:0.2f} seconds".format(elapsed)

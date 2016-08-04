@@ -68,7 +68,7 @@ if __name__ == "__main__":
             continue
         indir = os.path.join(DATA_DIR, raw_folder)
 
-        #Catching the one special case
+        # Catching the one special case
         if raw_folder == 'Cirneco dell’Etna':
             raw_folder = 'Etna Cirneco'
 
@@ -78,7 +78,7 @@ if __name__ == "__main__":
             os.mkdir(outdir)
         job = {'name':raw_folder, 'indir':indir, 'outdir':outdir}
         
-        #collect unique image labels
+        # collect unique image labels
         classes.add(raw_folder)
         
         q.put(job)

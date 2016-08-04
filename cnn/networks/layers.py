@@ -34,11 +34,11 @@ def conv2d(inputs, n_out, kernel_height, kernel_width, **kwargs):
 
     with tf.variable_scope(name) as scope:
         weights = tf.get_variable('weights', [kernel_height, kernel_width, channles_in, n_out],
-                                  initializer=tf.truncated_normal_initializer(stddev=1e-1))
+                                  initializer=tf.truncated_normal_initializer(stddev=0.1))
         convolve = tf.nn.conv2d(inputs, weights, [1, conv_height, conv_width, 1],
                                 padding=padding)
         if bias is True:
-            bias_layer = tf.get_variable("biases", [n_out], initializer=tf.constant_initializer(0.0))
+            bias_layer = tf.get_variable("biases", [n_out], initializer=tf.constant_initializer(0.01))
             convolve = tf.nn.bias_add(convolve, bias_layer)
 
         if relu is True:
@@ -69,11 +69,11 @@ def affine(inputs, n_out, **kwargs):
         n_in = input_shape[-1]
 
     with tf.variable_scope(name) as scope:
-        weights = tf.get_variable('weights', [n_in, n_out], initializer=tf.truncated_normal_initializer(stddev=1e-1))
+        weights = tf.get_variable('weights', [n_in, n_out], initializer=tf.truncated_normal_initializer(stddev=0.1))
         fc = tf.matmul(inputs, weights)
 
         if bias is True:
-            bias_layer = tf.get_variable("biases", [n_out], initializer=tf.constant_initializer(0.0))
+            bias_layer = tf.get_variable("biases", [n_out], initializer=tf.constant_initializer(0.01))
             fc = tf.nn.bias_add(fc, bias_layer)
 
         if relu is True:
