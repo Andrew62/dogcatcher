@@ -44,12 +44,14 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
     with graph.as_default():
         model = model(n_classes, train=train)
         train_labels_placeholder = tf.placeholder(dtype=tf.float32, name="train_labels", shape=[BATCH_SIZE, n_classes])
+        learning_rate_placeholder = tf.placeholder(dtype=tf.float32, name='learning_rate')
 
+        tf.scalar_summary('learning_rate', learning_rate_placeholder)
         tf.image_summary("raw_input", model.input_data)
 
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
         tf.scalar_summary('loss', loss)
-        optimizer = tf.train.GradientDescentOptimizer(0.01).minimize(loss)
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate_placeholder).minimize(loss)
         trainable_vars = tf.trainable_variables()
 
         saver = tf.train.Saver(trainable_vars)
@@ -76,13 +78,15 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
         epoch = 0
         i = 0
         data.start()
+        learning_rate = 0.01
         try:
             while epoch <= EPOCHS:
                 start = time.time()
                 train_data, train_labels, epoch = data.batch()
                 train_lab_vec = encoder.encode(train_labels)
                 feed = {model.input_data: train_data,
-                        train_labels_placeholder: train_lab_vec}
+                        train_labels_placeholder: train_lab_vec,
+                        learning_rate_placeholder: learning_rate}
                 _, sess_loss, predictions, summary = sess.run([optimizer, loss, model.softmax, merged],
                                                               feed_dict=feed)
                 summary_writer.add_summary(summary, i)
@@ -90,7 +94,8 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
                 if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
                     avg_loss = sess_loss.mean()
                     total_correct, minibatch_accuracy = util.accuracy(predictions, train_lab_vec)
-                    subj, msg = util.get_message(i, minibatch_accuracy, start, avg_loss, total_correct, epoch)
+                    subj, msg = util.get_message(i, minibatch_accuracy, start, avg_loss,
+                                                 total_correct, epoch, learning_rate)
                     print msg
                     if (((i + 1) % EMAIL_EVERY) == 0) and (EMAILING is True):
                         send_mail("dogcatcher update: " + subj, msg)
@@ -99,6 +104,9 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
                     saver.save(sess, os.path.join(model_dir, util.model_name(datetime.now())))
                     print "\n" + "*" * 50
                     print "Successful checkpoint iteration {0}".format(i + 1)
+
+                if epoch % 30 == 0:
+                    learning_rate *= 0.1
                 i += 1
 
             msg = "\n" + "*" * 50
