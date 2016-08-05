@@ -106,7 +106,11 @@ class QueueLoader(threading.Thread):
         while epoch < self.epochs and not self._stop.is_set():
             data = np.random.permutation(self.data)
             for idx in xrange(0, data.shape[0], self.batch_size):
-                self.queue.put((epoch, data[idx:idx + self.batch_size, :].copy()))
+                batch = data[idx:idx + self.batch_size, :].copy()
+                if (idx + self.batch_size) > data.shape[0]:
+                    print "skipping"
+                    continue
+                self.queue.put((epoch, batch))
             epoch += 1
         print self.name + " stopping"
 

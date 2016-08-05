@@ -25,9 +25,11 @@ if __name__ == "__main__":
     start = time.time()
     epoch = 0
     n_iter = 0
+    shp = (32, 224, 224, 3)
     while epoch < 1:
         train, lab, epoch = dat.batch()
-        print lab[0]
+        assert shp == train.shape
+        print n_iter
         n_iter += 1
 
     elapsed = time.time() - start
