@@ -143,8 +143,7 @@ class BatchLoader(threading.Thread):
             epoch, batch = self.in_q.get()
             for idx in xrange(batch.shape[0]):
                 row = batch[idx, :]
-                norm = self.normalize(np.asfarray(Image.open(row[1])))
-                batch_data[idx, :, :, :] = norm
+                batch_data[idx, :, :, :] = np.array(Image.open(row[1]))
                 batch_labels.append(row[0])
             self.out_q.put((batch_data, batch_labels, epoch))
 
