@@ -27,7 +27,7 @@ class AlxNet(object):
         with tf.variable_scope("pool1"):
             with tf.variable_scope('conv1'):
                 self.weights1 = tf.Variable(tf.truncated_normal([11, 11, 3, 48], dtype=tf.float32, stddev=1e-2))
-                self.bias1 = tf.Variable(tf.constant(1.0, shape=[48], dtype=tf.float32))
+                self.bias1 = tf.Variable(tf.constant(0.01, shape=[48], dtype=tf.float32))
                 self.conv1 = tf.nn.conv2d(self.input_data, self.weights1, [1, 4, 4, 1], 'SAME')
                 self.hidden1 = tf.nn.relu(self.conv1 + self.bias1)
                 self.response_norm1 = tf.nn.local_response_normalization(self.hidden1, depth_radius=5, alpha=1e-3,
@@ -38,7 +38,7 @@ class AlxNet(object):
         with tf.variable_scope("pool2"):
             with tf.variable_scope('conv2'):
                 self.weights2 = tf.Variable(tf.truncated_normal([5, 5, 48, 128], stddev=1e-2, dtype=tf.float32))
-                self.bias2 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[128]))
+                self.bias2 = tf.Variable(tf.constant(0.01, dtype=tf.float32, shape=[128]))
                 self.conv2 = tf.nn.conv2d(self.pool1, self.weights2, [1, 1, 1, 1], 'SAME')
                 self.hidden2 = tf.nn.relu(self.conv2 + self.bias2)
                 self.response_norm2 = tf.nn.local_response_normalization(self.hidden2, depth_radius=5, alpha=1e-3,
@@ -49,19 +49,19 @@ class AlxNet(object):
         with tf.variable_scope("pool3"):
             with tf.variable_scope('conv3'):
                 self.weights3 = tf.Variable(tf.truncated_normal([3, 3, 128, 192], dtype=tf.float32, stddev=1e-2))
-                self.bias3 = tf.Variable(tf.constant(1.0, shape=[192], dtype=tf.float32))
+                self.bias3 = tf.Variable(tf.constant(0.01, shape=[192], dtype=tf.float32))
                 self.conv3 = tf.nn.conv2d(self.pool2, self.weights3, [1, 2, 2, 1], 'VALID')
                 self.hidden3 = tf.nn.relu(self.conv3 + self.bias3)
 
             with tf.variable_scope("conv4"):
                 self.weights4 = tf.Variable(tf.truncated_normal([3, 3, 192, 192], stddev=1e-2, dtype=tf.float32))
-                self.bias4 = tf.Variable(tf.constant(1.0, shape=[192], dtype=tf.float32))
+                self.bias4 = tf.Variable(tf.constant(0.01, shape=[192], dtype=tf.float32))
                 self.conv4 = tf.nn.conv2d(self.hidden3, self.weights4, [1, 1, 1, 1], 'SAME')
                 self.hidden4 = tf.nn.relu(self.conv4 + self.bias4)
 
             with tf.variable_scope("conv5"):
                 self.weights5 = tf.Variable(tf.truncated_normal([3, 3, 192, 128], stddev=1e-2, dtype=tf.float32))
-                self.bias5 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[128]))
+                self.bias5 = tf.Variable(tf.constant(0.01, dtype=tf.float32, shape=[128]))
                 self.conv5 = tf.nn.conv2d(self.hidden4, self.weights5, [1, 1, 1, 1], 'SAME')
                 self.hidden5 = tf.nn.relu(self.conv5 + self.bias5)
 
@@ -72,7 +72,7 @@ class AlxNet(object):
 
         with tf.variable_scope("fc6"):
             self.weights6 = tf.Variable(tf.truncated_normal([middle_shape, 4096], dtype=tf.float32, stddev=1e-2))
-            self.bias6 = tf.Variable(tf.constant(1.0, shape=[4096], dtype=tf.float32))
+            self.bias6 = tf.Variable(tf.constant(0.01, shape=[4096], dtype=tf.float32))
             self.matmul_1 = tf.matmul(self.reshape5, self.weights6)
             self.fc6 = tf.nn.relu(self.matmul_1 + self.bias6)
 
@@ -83,7 +83,7 @@ class AlxNet(object):
 
         with tf.variable_scope("fc7"):
             self.weights7 = tf.Variable(tf.truncated_normal([4096, 4096], stddev=1e-2, dtype=tf.float32))
-            self.bias7 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[4096]))
+            self.bias7 = tf.Variable(tf.constant(0.01, dtype=tf.float32, shape=[4096]))
             self.matmul_2 = tf.matmul(self.fc6, self.weights7)
             self.fc7 = tf.nn.relu(self.matmul_2 + self.bias7)
 
@@ -94,7 +94,7 @@ class AlxNet(object):
 
         with tf.variable_scope("logits"):
             self.weights8 = tf.Variable(tf.truncated_normal([4096, n_classes], stddev=1e-2, dtype=tf.float32))
-            self.bias8 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[n_classes]))
+            self.bias8 = tf.Variable(tf.constant(0.01, dtype=tf.float32, shape=[n_classes]))
             self.logits = tf.nn.bias_add(tf.matmul(self.fc7, self.weights8), self.bias8)
 
         self.softmax = tf.nn.softmax(self.logits, 'softmax')
