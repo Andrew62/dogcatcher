@@ -17,18 +17,23 @@ class AlxNet(object):
         self.input_data = tf.placeholder(dtype=tf.float32, name="input_data", shape=[None, 224, 224, 3])
         self.keep_prob = tf.constant(keep_prob, name="Dropout", dtype=tf.float32)
 
-        mean = tf.constant([125.974950491, 121.990847064, 102.991749558],
-                           dtype=tf.float32, name='img_mean')
+        with tf.variable_scope('batch_norm'):
+            mean, var = tf.nn.moments(self.input_data, axes=[0, 1, 2])
+            self.batch_norm = tf.nn.batch_normalization(self.input_data, mean, var, offset=None, scale=None,
+                                                        variance_epsilon=1e-6)
 
-        self.mean_subtract = self.input_data - mean
+        # mean = tf.constant([125.974950491, 121.990847064, 102.991749558],
+        #                    dtype=tf.float32, name='img_mean')
+        #
+        # self.mean_subtract = self.input_data - mean
 
-        tf.image_summary('mean_subtract', self.mean_subtract)
+        tf.image_summary('batch_norm', self.batch_norm)
 
         with tf.variable_scope("pool1"):
             with tf.variable_scope('conv1'):
                 self.weights1 = tf.Variable(tf.truncated_normal([11, 11, 3, 48], dtype=tf.float32, stddev=1e-2))
                 self.bias1 = tf.Variable(tf.constant(0.01, shape=[48], dtype=tf.float32))
-                self.conv1 = tf.nn.conv2d(self.mean_subtract, self.weights1, [1, 4, 4, 1], 'SAME')
+                self.conv1 = tf.nn.conv2d(self.batch_norm, self.weights1, [1, 4, 4, 1], 'SAME')
                 self.hidden1 = tf.nn.relu(self.conv1 + self.bias1)
                 self.response_norm1 = tf.nn.local_response_normalization(self.hidden1, depth_radius=5, alpha=1e-3,
                                                                     beta=0.75, bias=2.0)
@@ -102,6 +107,7 @@ class AlxNet(object):
 
 if __name__ == "__main__":
     alexnet = AlxNet(10)
+    print alexnet.batch_norm.get_shape()
     for i in range(8):
         try:
             print getattr(alexnet, 'weights{}'.format(i+1)).get_shape()
