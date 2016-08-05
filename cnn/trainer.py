@@ -105,7 +105,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
                     print "\n" + "*" * 50
                     print "Successful checkpoint iteration {0}".format(i + 1)
 
-                if epoch % 30 == 0:
+                if (epoch + 1) % 30 == 0:
                     learning_rate *= 0.1
                 i += 1
 
