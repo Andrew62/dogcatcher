@@ -5,6 +5,7 @@ Tensorflow implementation of AlexNet
 
 import tensorflow as tf
 from operator import mul
+from layers import variable_summaries
 
 class AlxNet(object):
     def __init__(self, n_classes, keep_prob=0.5, train=False):
@@ -21,6 +22,8 @@ class AlxNet(object):
 
         self.mean_subtract = self.input_data - mean
 
+        tf.image_summary('mean_subtract', self.mean_subtract)
+
         with tf.variable_scope("pool1"):
             with tf.variable_scope('conv1'):
                 self.weights1 = tf.Variable(tf.truncated_normal([11, 11, 3, 48], dtype=tf.float32, stddev=1e-2))
@@ -30,6 +33,7 @@ class AlxNet(object):
                 self.response_norm1 = tf.nn.local_response_normalization(self.hidden1, depth_radius=5, alpha=1e-3,
                                                                     beta=0.75, bias=2.0)
             self.pool1 = tf.nn.max_pool(self.response_norm1, [1, 2, 2, 1], [1, 1, 1, 1], padding="VALID")
+            variable_summaries(self.pool1, 'pool1')
 
         with tf.variable_scope("pool2"):
             with tf.variable_scope('conv2'):
@@ -40,6 +44,7 @@ class AlxNet(object):
                 self.response_norm2 = tf.nn.local_response_normalization(self.hidden2, depth_radius=5, alpha=1e-3,
                                                                     beta=0.75, bias=2.0)
             self.pool2 = tf.nn.max_pool(self.response_norm2, [1, 3, 3, 1], [1, 2, 2, 1], padding="VALID")
+            variable_summaries(self.pool2, 'pool2')
 
         with tf.variable_scope("pool3"):
             with tf.variable_scope('conv3'):
@@ -61,6 +66,7 @@ class AlxNet(object):
                 self.hidden5 = tf.nn.relu(self.conv5 + self.bias5)
 
             self.pool5 = tf.nn.max_pool(self.hidden5, [1, 2, 2, 1], [1, 1, 1, 1], padding="SAME")
+            variable_summaries(self.pool5, 'pool5')
             middle_shape = reduce(mul, self.pool5.get_shape().as_list()[1:], 1)
             self.reshape5 = tf.reshape(self.pool5, [-1, middle_shape])
 
@@ -70,6 +76,8 @@ class AlxNet(object):
             self.matmul_1 = tf.matmul(self.reshape5, self.weights6)
             self.fc6 = tf.nn.relu(self.matmul_1 + self.bias6)
 
+            variable_summaries(self.fc6, 'fc6')
+
             if train is True:
                 self.fc6 = tf.nn.dropout(self.fc6, keep_prob)
 
@@ -78,6 +86,8 @@ class AlxNet(object):
             self.bias7 = tf.Variable(tf.constant(1.0, dtype=tf.float32, shape=[4096]))
             self.matmul_2 = tf.matmul(self.fc6, self.weights7)
             self.fc7 = tf.nn.relu(self.matmul_2 + self.bias7)
+
+            variable_summaries(self.fc7, 'fc7')
 
             if train is True:
                 self.fc7 = tf.nn.dropout(self.fc7, keep_prob)
