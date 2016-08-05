@@ -43,7 +43,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
     graph = tf.Graph()
     with graph.as_default():
         model = model(n_classes, train=train)
-        train_labels_placeholder = tf.placeholder(dtype=tf.float32, name="train_labels")
+        train_labels_placeholder = tf.placeholder(dtype=tf.float32, name="train_labels", shape=[BATCH_SIZE, n_classes])
 
         tf.image_summary("raw_input", model.input_data)
 
