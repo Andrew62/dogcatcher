@@ -132,6 +132,9 @@ class BatchLoader(threading.Thread):
 
         self._stop = event
 
+    def normalize(self, img):
+        return (img - img.min())/(img.max() - img.min())
+
     def run(self):
         print self.name + " starting"
         while not self._stop.is_set():
@@ -140,7 +143,8 @@ class BatchLoader(threading.Thread):
             epoch, batch = self.in_q.get()
             for idx in xrange(batch.shape[0]):
                 row = batch[idx, :]
-                batch_data[idx, :, :, :] = np.array(Image.open(row[1]))
+                norm = self.normalize(np.asfarray(Image.open(row[1])))
+                batch_data[idx, :, :, :] = norm
                 batch_labels.append(row[0])
             self.out_q.put((batch_data, batch_labels, epoch))
 
