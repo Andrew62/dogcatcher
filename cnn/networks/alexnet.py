@@ -14,12 +14,12 @@ class AlxNet(object):
         we are using larger images so the fully connected layers
         need to be modified
         """
-        self.input_data = tf.placeholder(dtype=tf.float32, name="input_data", shape=[None, 224, 224, 3])
+        self.input_data = tf.placeholder(dtype=tf.float32, name="input_data", shape=[None, 227, 227, 3])
         self.keep_prob = tf.constant(keep_prob, name="Dropout", dtype=tf.float32)
 
         with tf.variable_scope('batch_norm'):
             mean, var = tf.nn.moments(self.input_data, axes=[0, 1, 2])
-            self.batch_norm = tf.nn.batch_normalization(self.input_data, mean, var, offset=None, scale=None,
+            self.batch_norm = tf.nn.batch_normalization(self.input_data, mean, var, offset=0, scale=1,
                                                         variance_epsilon=1e-6)
 
         # mean = tf.constant([125.974950491, 121.990847064, 102.991749558],
@@ -32,7 +32,7 @@ class AlxNet(object):
         with tf.variable_scope("pool1"):
             with tf.variable_scope('conv1'):
                 self.weights1 = tf.Variable(tf.truncated_normal([11, 11, 3, 96], dtype=tf.float32, stddev=1e-2))
-                self.bias1 = tf.Variable(tf.constant(0.01, shape=[96], dtype=tf.float32))
+                self.bias1 = tf.Variable(tf.constant(0.1, shape=[96], dtype=tf.float32))
                 self.conv1 = tf.nn.conv2d(self.batch_norm, self.weights1, [1, 4, 4, 1], 'VALID')
                 self.hidden1 = tf.nn.relu(self.conv1 + self.bias1)
                 self.response_norm1 = tf.nn.local_response_normalization(self.hidden1, depth_radius=5, alpha=1e-3,
