@@ -35,8 +35,8 @@ class AlxNet(object):
                 self.bias1 = tf.Variable(tf.constant(0.01, shape=[96], dtype=tf.float32))
                 self.conv1 = tf.nn.conv2d(self.batch_norm, self.weights1, [1, 4, 4, 1], 'VALID')
                 self.hidden1 = tf.nn.relu(self.conv1 + self.bias1)
-                self.response_norm1 = tf.nn.local_response_normalization(self.hidden1, depth_radius=5, alpha=1e-3,
-                                                                    beta=0.75, bias=2.0)
+                self.response_norm1 = tf.nn.local_response_normalization(self.hidden1, depth_radius=2, alpha=1e-5,
+                                                                    beta=0.75, bias=1.0)
             self.pool1 = tf.nn.max_pool(self.response_norm1, [1, 3, 3, 1], [1, 2, 2, 1], padding="VALID")
             variable_summaries(self.pool1, 'pool1')
 
@@ -46,8 +46,8 @@ class AlxNet(object):
                 self.bias2 = tf.Variable(tf.constant(0.1, dtype=tf.float32, shape=[256]))
                 self.conv2 = tf.nn.conv2d(self.pool1, self.weights2, [1, 1, 1, 1], 'SAME')
                 self.hidden2 = tf.nn.relu(self.conv2 + self.bias2)
-                self.response_norm2 = tf.nn.local_response_normalization(self.hidden2, depth_radius=5, alpha=1e-3,
-                                                                    beta=0.75, bias=2.0)
+                self.response_norm2 = tf.nn.local_response_normalization(self.hidden2, depth_radius=2, alpha=1e-5,
+                                                                    beta=0.75, bias=1.0)
             self.pool2 = tf.nn.max_pool(self.response_norm2, [1, 3, 3, 1], [1, 2, 2, 1], padding="SAME")
             variable_summaries(self.pool2, 'pool2')
 
