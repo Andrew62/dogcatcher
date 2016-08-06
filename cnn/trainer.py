@@ -38,7 +38,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
 
     classes = util.pkl_load(class_pkl)
     encoder = OneHot(classes)
-    data = DataSet(train_pkl, BATCH_SIZE, EPOCHS)
+    data = DataSet(train_pkl, BATCH_SIZE, EPOCHS, img_shape=(227, 227, 3))
 
     graph = tf.Graph()
     with graph.as_default():
