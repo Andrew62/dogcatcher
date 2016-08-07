@@ -18,6 +18,7 @@ import threading
 import numpy as np
 from PIL import Image
 from Queue import Queue
+import traceback
 
 
 class DataSet(object):
@@ -101,17 +102,22 @@ class QueueLoader(threading.Thread):
         self._stop = event
 
     def run(self):
-        print self.name + " starting"
-        epoch = 0
-        while epoch < self.epochs and not self._stop.is_set():
-            data = np.random.permutation(self.data)
-            for idx in xrange(0, data.shape[0], self.batch_size):
-                batch = data[idx:idx + self.batch_size, :].copy()
-                if (idx + self.batch_size) > data.shape[0]:
-                    print "skipping"
-                    continue
-                self.queue.put((epoch, batch))
-            epoch += 1
+        try:
+            print self.name + " starting"
+            epoch = 0
+            while epoch < self.epochs and not self._stop.is_set():
+                data = np.random.permutation(self.data)
+                for idx in xrange(0, data.shape[0], self.batch_size):
+                    batch = data[idx:idx + self.batch_size, :].copy()
+                    if (idx + self.batch_size) > data.shape[0]:
+                        print "skipping"
+                        continue
+                    self.queue.put((epoch, batch))
+                epoch += 1
+        except Exception as e:
+            traceback.print_exc()
+            raise e
+
         print self.name + " stopping"
 
 
@@ -140,15 +146,18 @@ class BatchLoader(threading.Thread):
         return (img - img.min())/(img.max() - img.min())
 
     def run(self):
-        print self.name + " starting"
-        while not self._stop.is_set():
-            batch_data = np.ones(shape=self.batch_shape, dtype=np.float32)
-            batch_labels = []
-            epoch, batch = self.in_q.get()
-            for idx in xrange(batch.shape[0]):
-                row = batch[idx, :]
-                batch_data[idx, :, :, :] = np.array(Image.open(row[1]))
-                batch_labels.append(row[0])
-            self.out_q.put((batch_data, batch_labels, epoch))
-
+        try:
+            print self.name + " starting"
+            while not self._stop.is_set():
+                batch_data = np.ones(shape=self.batch_shape, dtype=np.float32)
+                batch_labels = []
+                epoch, batch = self.in_q.get()
+                for idx in xrange(batch.shape[0]):
+                    row = batch[idx, :]
+                    batch_data[idx, :, :, :] = np.array(Image.open(row[1]))
+                    batch_labels.append(row[0])
+                self.out_q.put((batch_data, batch_labels, epoch))
+        except Exception as e:
+            traceback.print_exc()
+            raise e
 
