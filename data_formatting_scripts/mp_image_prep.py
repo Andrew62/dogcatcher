@@ -49,8 +49,8 @@ if __name__ == "__main__":
     DATA_DIR = workspace.data_dir
     OUT_DIR = workspace.out_dir
     OUT_CSV = workspace.out_csv
-    PROCESSES=12
-    PIXELS=227
+    PROCESSES = 12
+    PIXELS = 224
     q = Queue()
     TRANSFORM = True
     new_folders = []
