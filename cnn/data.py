@@ -14,11 +14,11 @@ when to reshuffle.
 """
 
 import pickle
+import traceback
 import threading
 import numpy as np
 from PIL import Image
 from Queue import Queue
-import traceback
 
 
 class DataSet(object):
@@ -142,7 +142,8 @@ class BatchLoader(threading.Thread):
 
         self._stop = event
 
-    def normalize(self, img):
+    @staticmethod
+    def normalize(img):
         return (img - img.min())/(img.max() - img.min())
 
     def run(self):
