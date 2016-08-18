@@ -138,13 +138,3 @@ Comleted in {4:0.2f} seconds""".format(name, success, duplicate_counter,
 
             if self.queue.empty():
                 break
-
-if __name__ == "__main__":
-    from Queue import Queue
-    q = Queue()
-    job = dict(name="Affenpinscher", indir="/home/andrew/Documents/dogcatcher/raw_data/Affenpinscher",
-               outdir="/home/andrew/Downloads")
-    q.put(job)
-    process = MPTransformer('1', q)
-    process.run()
-    
