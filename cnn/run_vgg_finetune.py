@@ -96,6 +96,6 @@ with sess.as_default():
 
     finally:
         print("Cleaning up...")
-        saver.save(sess, os.path.join(model_dir, "vgg16.model"))
+        # saver.save(sess, os.path.join(model_dir, "vgg16.model"))
         # tf.train.write_graph(sess.graph_def, model_dir, "vgg16.graph", as_text=False)
         print("Complete!")

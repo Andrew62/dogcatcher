@@ -67,24 +67,30 @@ with sess.as_default():
     epochs = 0
     data.start()
     out_array = None
+    labels = []
     while epochs < n_epochs:
         start = time.time()
         train_data, train_labels, epoch = data.batch()
         train_lab_vec = encoder.encode(train_labels)
         feed = {model.input_data: train_data}
-        features, summary = sess.run([model.logits, merged], feed_dict=feed)
+        features, logits, summary = sess.run([model.fc7, model.logits, merged], feed_dict=feed)
+        for row in xrange(logits.shape[0]):
+            labels.append(np.argmax(logits[row, :]))
         if i == 0:
             out_array = features
         else:
             out_array = np.concatenate((out_array, features))
 
-        print "{0:0.2%} complete ({1:0.1f} seconds)".format((batch_size * (i + 1.0)) / len(data.data),
-                                                            time.time() - start)
+        print "{0:0.1%} complete ({1:0.1f} seconds, {2} iterations)".format((batch_size * (i + 1.0)) / len(data.data),
+                                                                            time.time() - start, i + 1)
         i += 1
 
+        # TODO Remove this
         if (i + 1) == 100:
             break
 
-    np.save("../models/vgg_finetune/vectors.npy", out_array)
+    labels_arr = np.asarray(labels, dtype=np.int)
+    np.save("/Users/awoizesko/Desktop/vgg_labels.npy", labels_arr)
+    np.save("/Users/awoizesko/Desktop/vgg_feats.npy", out_array)
     saver.save(sess, os.path.join(model_dir, "vgg16.model"))
     print("Complete!")
