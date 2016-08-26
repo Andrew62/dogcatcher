@@ -13,7 +13,6 @@ keeps track of the index for each data subset so it knows
 when to reshuffle.
 """
 
-import pickle
 import traceback
 import threading
 import numpy as np
@@ -23,16 +22,16 @@ from Queue import Queue
 
 class DataSet(object):
 
-    def __init__(self, data_pkl, batch_size, epochs, **kwargs):
+    def __init__(self, data, batch_size, epochs, **kwargs):
         """
         Multithreaded data loader
-        :param data_pkl: pickled numpy array with rows [label, file_path]
+        :param data: numpy array with rows [label, file_path]
         :param batch_size: number of examples per batch
         :param epochs: number of times to travse the data
         :param img_shape: tuple of output data. For example (224, 224, 3)
         :param n_loaders: number of data loading threads. These read files into the array
         """
-        self.data = self.pkl_load(data_pkl)
+        self.data = data
         self.img_shape = kwargs.pop('img_shape', (224, 224, 3))
         self.epochs = epochs
         self.batch_size = batch_size
@@ -110,7 +109,6 @@ class QueueLoader(threading.Thread):
                 for idx in xrange(0, data.shape[0], self.batch_size):
                     batch = data[idx:idx + self.batch_size, :].copy()
                     if (idx + self.batch_size) > data.shape[0]:
-                        print "skipping"
                         continue
                     self.queue.put((epoch, batch))
                 epoch += 1
@@ -144,7 +142,7 @@ class BatchLoader(threading.Thread):
 
     @staticmethod
     def normalize(img):
-        return (img - img.min())/(img.max() - img.min())
+        return (img - img.mean())/img.std()
 
     def run(self):
         try:
