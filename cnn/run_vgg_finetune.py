@@ -22,7 +22,8 @@ message_every = 50
 pretrained_weights_npy = workspace.vgg16c_weights
 model_dir = workspace.vgg16c_models
 classes = util.pkl_load(workspace.class_pkl)
-data = DataSet(workspace.train_pkl, batch_size, n_epochs)
+train_data = util.pkl_load(workspace.train_pkl)
+data = DataSet(train_data, batch_size, n_epochs)
 
 encoder = OneHot(classes)
 
@@ -84,7 +85,8 @@ with sess.as_default():
             if ((i + 1) % message_every == 0) or (i == 0):
                 avg_loss = sess_loss.mean()
                 total_correct, minibatch_accuracy = util.accuracy(predictions, train_lab_vec)
-                subj, msg = util.get_message(i, minibatch_accuracy, start, avg_loss, total_correct)
+                subj, msg = util.get_message(i, minibatch_accuracy, start, avg_loss, total_correct, 
+                                             epoch, learning_rate)
                 print msg
 
             if (epoch + 1) % 30 == 0:
