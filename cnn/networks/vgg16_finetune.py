@@ -22,6 +22,8 @@ class VGG16_D(object):
                            dtype=tf.float32, name='img_mean')
 
         self.mean_subtract = self.input_data - mean
+        
+        tf.image_summary("mean_subtract", self.mean_subtract)
 
         name = 'conv1_1'
         self.layer_names.append(name)
@@ -44,7 +46,7 @@ class VGG16_D(object):
             self.convolve2 = tf.nn.conv2d(self.conv1, self.weights2, [1, 1, 1, 1], padding="SAME")
             self.conv2 = tf.nn.relu(tf.nn.bias_add(self.convolve2, self.bias2))
 
-        self.pool1 = tf.nn.max_pool(self.conv2, [1, 2, 2, 1], [1, 2, 2, 1], 'SAME', name='pool1')
+        self.pool1 = tf.nn.max_pool(self.conv2, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID', name='pool1')
         variable_summaries(self.pool1, 'pool1')
         self.layer_names.append('pool1')
 
@@ -69,7 +71,7 @@ class VGG16_D(object):
                                          trainable=False)
             self.convolve4 = tf.nn.conv2d(self.conv3, self.weights4, [1, 1, 1, 1], padding="SAME")
             self.conv4 = tf.nn.relu(tf.nn.bias_add(self.convolve4, self.bias4))
-        self.pool2 = tf.nn.max_pool(self.conv4, [1, 2, 2, 1], [1, 2, 2, 1], 'SAME', name='pool2')
+        self.pool2 = tf.nn.max_pool(self.conv4, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID', name='pool2')
         self.layer_names.append("pool2")
         variable_summaries(self.pool2, 'pool2')
 
@@ -106,7 +108,7 @@ class VGG16_D(object):
             self.convolve7 = tf.nn.conv2d(self.conv6, self.weights7, [1, 1, 1, 1], padding="SAME")
             self.conv7 = tf.nn.relu(tf.nn.bias_add(self.convolve7, self.bias7))
 
-        self.pool3 = tf.nn.max_pool(self.conv7, [1, 2, 2, 1], [1, 2, 2, 1], 'SAME', name='pool3')
+        self.pool3 = tf.nn.max_pool(self.conv7, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID', name='pool3')
         self.layer_names.append('pool3')
         variable_summaries(self.pool3, 'pool3')
 
@@ -142,7 +144,7 @@ class VGG16_D(object):
                                           trainable=False)
             self.convolve10 = tf.nn.conv2d(self.conv9, self.weights10, [1, 1, 1, 1], padding="SAME")
             self.conv10 = tf.nn.relu(tf.nn.bias_add(self.convolve10, self.bias10))
-        self.pool4 = tf.nn.max_pool(self.conv10, [1, 2, 2, 1], [1, 2, 2, 1], 'SAME', name="pool4")
+        self.pool4 = tf.nn.max_pool(self.conv10, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID', name="pool4")
         self.layer_names.append('pool4')
         variable_summaries(self.pool4, 'pool4')
 
@@ -178,7 +180,7 @@ class VGG16_D(object):
                                           trainable=False)
             self.convolve13 = tf.nn.conv2d(self.conv12, self.weights13, [1, 1, 1, 1], padding="SAME")
             self.conv13 = tf.nn.relu(tf.nn.bias_add(self.convolve13, self.bias13))
-        self.pool5 = tf.nn.max_pool(self.conv13, [1, 2, 2, 1], [1, 2, 2, 1], "SAME", name="pool5")
+        self.pool5 = tf.nn.max_pool(self.conv13, [1, 2, 2, 1], [1, 2, 2, 1], "VALID", name="pool5")
         variable_summaries(self.pool5, 'pool5')
         middle_shape = reduce(mul, self.pool5.get_shape().as_list()[1:], 1)
         self.reshape5 = tf.reshape(self.pool5, [-1, middle_shape])
@@ -204,7 +206,7 @@ class VGG16_D(object):
         with tf.variable_scope(name):
             self.weights15 = tf.get_variable('weights', [4096, 4096],
                                              initializer=tf.random_normal_initializer(stddev=1e-2))
-            self.bias15 = tf.get_variable("biases", [4096], initializer=tf.constant_initializer(0.0))
+            self.bias15 = tf.get_variable("biases", [4096], initializer=tf.constant_initializer(0.01))
             self.fc7 = tf.nn.relu(tf.nn.bias_add(tf.matmul(self.fc6, self.weights15), self.bias15))
             if train is True:
                 self.fc7 = tf.nn.dropout(self.fc7, self.keep_prob)
@@ -215,7 +217,7 @@ class VGG16_D(object):
         with tf.variable_scope(name):
             self.weights16 = tf.get_variable('weights', [4096, n_classes],
                                              initializer=tf.random_normal_initializer(stddev=1e-2))
-            self.bias16 = tf.get_variable("biases", [n_classes], initializer=tf.constant_initializer(0.0))
+            self.bias16 = tf.get_variable("biases", [n_classes], initializer=tf.constant_initializer(0.01))
 
         self.logits = tf.nn.bias_add(tf.matmul(self.fc7, self.weights16), self.bias16)
         self.softmax = tf.nn.softmax(self.logits, 'softmax')
