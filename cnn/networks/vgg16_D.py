@@ -21,7 +21,7 @@ class VGG16_D(object):
         tf.image_summary(name, self.batch_norm)
 
         if train is True:
-            tf.image_summary("mean_subtract", self.batch_norm)
+            tf.image_summary("batch_norm", self.batch_norm)
 
         self.layers = []
 
