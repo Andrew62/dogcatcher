@@ -18,13 +18,10 @@ class VGG16_D(object):
 
         self.layer_names = []
 
-        name = 'batch_norm'
-        self.layer_names.append(name)
-        with tf.variable_scope(name):
-            mean, var = tf.nn.moments(self.input_data, axes=[0, 1, 2])
-            self.batch_norm = tf.nn.batch_normalization(self.input_data, mean, var, offset=1, scale=1,
-                                                        variance_epsilon=1e-6)
-        tf.image_summary(name, self.batch_norm)
+        mean = tf.constant([125.974950491, 121.990847064, 102.991749558],
+                           dtype=tf.float32, name='img_mean')
+
+        self.mean_subtract = self.input_data - mean
 
         name = 'conv1_1'
         self.layer_names.append(name)
@@ -33,7 +30,7 @@ class VGG16_D(object):
                                             trainable=False)
             self.bias1 = tf.get_variable("biases", [64], initializer=tf.constant_initializer(0.0),
                                          trainable=False)
-            self.convolve1 = tf.nn.conv2d(self.batch_norm, self.weights1, [1, 1, 1, 1], padding="SAME")
+            self.convolve1 = tf.nn.conv2d(self.mean_subtract, self.weights1, [1, 1, 1, 1], padding="SAME")
             self.conv1 = tf.nn.relu(tf.nn.bias_add(self.convolve1, self.bias1))
 
         name = 'conv1_2'
@@ -219,8 +216,8 @@ class VGG16_D(object):
             self.weights16 = tf.get_variable('weights', [4096, n_classes],
                                              initializer=tf.random_normal_initializer(stddev=1e-2))
             self.bias16 = tf.get_variable("biases", [n_classes], initializer=tf.constant_initializer(0.0))
-            self.logits = tf.nn.bias_add(tf.matmul(self.fc7, self.weights16), self.bias16)
 
+        self.logits = tf.nn.bias_add(tf.matmul(self.fc7, self.weights16), self.bias16)
         self.softmax = tf.nn.softmax(self.logits, 'softmax')
 
 
