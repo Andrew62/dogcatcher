@@ -218,8 +218,7 @@ class VGG16_D(object):
             self.weights16 = tf.get_variable('weights', [4096, n_classes],
                                              initializer=tf.random_normal_initializer(stddev=1e-2))
             self.bias16 = tf.get_variable("biases", [n_classes], initializer=tf.constant_initializer(0.01))
-
-        self.logits = tf.nn.bias_add(tf.matmul(self.fc7, self.weights16), self.bias16)
+            self.logits = tf.nn.bias_add(tf.matmul(self.fc7, self.weights16), self.bias16)
         self.softmax = tf.nn.softmax(self.logits, 'softmax')
 
 
