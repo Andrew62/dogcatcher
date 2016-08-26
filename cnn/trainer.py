@@ -38,7 +38,8 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
 
     classes = util.pkl_load(class_pkl)
     encoder = OneHot(classes)
-    data = DataSet(train_pkl, BATCH_SIZE, EPOCHS, img_shape=(227, 227, 3))
+    train_set = util.pkl_load(train_pkl)
+    data = DataSet(train_set, BATCH_SIZE, EPOCHS)
 
     graph = tf.Graph()
     with graph.as_default():
@@ -51,7 +52,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
 
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
         tf.scalar_summary('loss', loss)
-        optimizer = tf.train.GradientDescentOptimizer(learning_rate_placeholder).minimize(loss)
+        optimizer = tf.train.AdamOptimizer(0.01).minimize(loss)
         trainable_vars = tf.trainable_variables()
 
         saver = tf.train.Saver(trainable_vars)
@@ -105,7 +106,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
                     print "\n" + "*" * 50
                     print "Successful checkpoint iteration {0}".format(i + 1)
 
-                if (epoch + 1) % 30 == 0:
+                if (epoch + 1) % 15 == 0:
                     learning_rate *= 0.1
                 i += 1
 
