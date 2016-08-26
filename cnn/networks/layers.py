@@ -44,7 +44,7 @@ def conv2d(inputs, n_out, kernel_height, kernel_width, **kwargs):
         if relu is True:
             convolve = tf.nn.relu(convolve)
 
-        return convolve
+    return convolve
 
 
 def affine(inputs, n_out, **kwargs):
@@ -79,7 +79,7 @@ def affine(inputs, n_out, **kwargs):
         if relu is True:
             fc = tf.nn.relu(fc)
 
-        return fc
+    return fc
 
 def variable_summaries(var, name):
     """Attach a lot of summaries to a Tensor."""
