@@ -60,7 +60,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
         merged = tf.merge_all_summaries()
 
     sess = tf.Session(graph=graph)
-    summary_writer = tf.train.SummaryWriter(os.path.join(model_dir, 'summary', time.strftime("%Y%m%d%H%M%S")),
+    summary_writer = tf.train.SummaryWriter(os.path.join(model_dir, 'summary', time.strftime("%Y-%m-%d%H%M%S")),
                                             graph=graph)
     with sess.as_default():
         sess.run(initop)
