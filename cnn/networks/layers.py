@@ -29,16 +29,18 @@ def conv2d(inputs, n_out, kernel_height, kernel_width, **kwargs):
     relu = kwargs.pop('relu', True)
     bias = kwargs.pop('bias', True)
     padding = kwargs.pop("padding", "SAME")
+    scope = kwargs.pop('scope', None)
+    reuse = kwargs.pop('reuse', None)
 
     channles_in = inputs.get_shape().as_list()[-1]
 
-    with tf.variable_scope(name) as scope:
-        weights = tf.get_variable('weights', [kernel_height, kernel_width, channles_in, n_out],
-                                  initializer=tf.truncated_normal_initializer(stddev=0.1))
+    with tf.variable_op_scope([inputs], scope, name, reuse=reuse) as scope:
+        weights = tf.Variable(tf.truncated_normal([kernel_height, kernel_width, channles_in, n_out],
+                                                  stddev=0.01), name='weights')
         convolve = tf.nn.conv2d(inputs, weights, [1, conv_height, conv_width, 1],
                                 padding=padding)
         if bias is True:
-            bias_layer = tf.get_variable("biases", [n_out], initializer=tf.constant_initializer(0.01))
+            bias_layer = tf.Variable(tf.constant(0.01, dtype=tf.float32, shape=[n_out]), name='biases')
             convolve = tf.nn.bias_add(convolve, bias_layer)
 
         if relu is True:
@@ -60,6 +62,8 @@ def affine(inputs, n_out, **kwargs):
     name = kwargs.pop("name", "affine")
     bias = kwargs.pop("bias", True)
     relu = kwargs.pop("relu", True)
+    scope = kwargs.pop('scope', None)
+    reuse = kwargs.pop('reuse', None)
 
     input_shape = inputs.get_shape().as_list()
     if len(input_shape) == 4:
@@ -68,18 +72,20 @@ def affine(inputs, n_out, **kwargs):
     else:
         n_in = input_shape[-1]
 
-    with tf.variable_scope(name) as scope:
-        weights = tf.get_variable('weights', [n_in, n_out], initializer=tf.truncated_normal_initializer(stddev=0.1))
+    with tf.variable_op_scope([inputs], scope, name, reuse=reuse) as scope:
+        weights = tf.Variable(tf.truncated_normal([n_in, n_out],
+                                                  stddev=0.01), name='weights')
         fc = tf.matmul(inputs, weights)
 
         if bias is True:
-            bias_layer = tf.get_variable("biases", [n_out], initializer=tf.constant_initializer(0.01))
+            bias_layer = tf.Variable(tf.constant(0.01, dtype=tf.float32, shape=[n_out]), name='biases')
             fc = tf.nn.bias_add(fc, bias_layer)
 
         if relu is True:
             fc = tf.nn.relu(fc)
 
     return fc
+
 
 def variable_summaries(var, name):
     """Attach a lot of summaries to a Tensor."""
