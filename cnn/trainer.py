@@ -17,7 +17,14 @@ from encoder import OneHot
 from datetime import datetime
 
 
-def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
+def train_model(class_pkl, train_pkl, model, model_dir, debug=False, fresh=False):
+    if fresh is True:
+        for the_file in os.listdir(model_dir):
+            filepath = os.path.join(model_dir, the_file)
+            if os.path.isfile(filepath):
+                print "Deleting {0}".format(filepath)
+                os.remove(filepath)
+        
     if debug is True:
         print "DEBUG MODE"
         MESSAGE_EVERY = 1
@@ -45,14 +52,12 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
     with graph.as_default():
         model = model(n_classes, train=train)
         train_labels_placeholder = tf.placeholder(dtype=tf.float32, name="train_labels", shape=[BATCH_SIZE, n_classes])
-        learning_rate_placeholder = tf.placeholder(dtype=tf.float32, name='learning_rate')
-
-        tf.scalar_summary('learning_rate', learning_rate_placeholder)
+        
         tf.image_summary("raw_input", model.input_data)
 
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
         tf.scalar_summary('loss', loss)
-        optimizer = tf.train.AdamOptimizer(0.01).minimize(loss)
+        optimizer = tf.train.AdamOptimizer(0.001).minimize(loss)
         trainable_vars = tf.trainable_variables()
 
         saver = tf.train.Saver(trainable_vars)
@@ -62,6 +67,8 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
     sess = tf.Session(graph=graph)
     summary_writer = tf.train.SummaryWriter(os.path.join(model_dir, 'summary', time.strftime("%Y-%m-%d%H%M%S")),
                                             graph=graph)
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
     with sess.as_default():
         sess.run(initop)
         print "\n" + "*" * 50
@@ -79,15 +86,13 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
         epoch = 0
         i = 0
         data.start()
-        learning_rate = 0.01
         try:
             while epoch <= EPOCHS:
                 start = time.time()
                 train_data, train_labels, epoch = data.batch()
                 train_lab_vec = encoder.encode(train_labels)
                 feed = {model.input_data: train_data,
-                        train_labels_placeholder: train_lab_vec,
-                        learning_rate_placeholder: learning_rate}
+                        train_labels_placeholder: train_lab_vec}
                 _, sess_loss, predictions, summary = sess.run([optimizer, loss, model.softmax, merged],
                                                               feed_dict=feed)
                 summary_writer.add_summary(summary, i)
@@ -96,7 +101,7 @@ def train_model(class_pkl, train_pkl, model, model_dir, debug=False):
                     avg_loss = sess_loss.mean()
                     total_correct, minibatch_accuracy = util.accuracy(predictions, train_lab_vec)
                     subj, msg = util.get_message(i, minibatch_accuracy, start, avg_loss,
-                                                 total_correct, epoch, learning_rate)
+                                                 total_correct, epoch, 0.001)
                     print msg
                     if (((i + 1) % EMAIL_EVERY) == 0) and (EMAILING is True):
                         send_mail("dogcatcher update: " + subj, msg)

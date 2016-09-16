@@ -40,7 +40,7 @@ def conv2d(inputs, n_out, kernel_height, kernel_width, **kwargs):
         convolve = tf.nn.conv2d(inputs, weights, [1, conv_height, conv_width, 1],
                                 padding=padding)
         if bias is True:
-            bias_layer = tf.Variable(tf.constant(0.01, dtype=tf.float32, shape=[n_out]), name='biases')
+            bias_layer = tf.Variable(tf.constant(0.001, dtype=tf.float32, shape=[n_out]), name='biases')
             convolve = tf.nn.bias_add(convolve, bias_layer)
 
         if relu is True:
@@ -78,7 +78,7 @@ def affine(inputs, n_out, **kwargs):
         fc = tf.matmul(inputs, weights)
 
         if bias is True:
-            bias_layer = tf.Variable(tf.constant(0.01, dtype=tf.float32, shape=[n_out]), name='biases')
+            bias_layer = tf.Variable(tf.constant(0.001, dtype=tf.float32, shape=[n_out]), name='biases')
             fc = tf.nn.bias_add(fc, bias_layer)
 
         if relu is True:
