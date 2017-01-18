@@ -74,12 +74,12 @@ class MPTransformer(Process):
                 already_used.add(img_hash)
                 valid_files.append(img_path)
             except IOError:
-                print "Couldn't open that one right"
+                print("Couldn't open that one right")
             except ValueError:
-                print "Nothing witty here"
+                print("Nothing witty here")
             except IndexError:
-                print os.path.basename(img_file)
-                print "Not enough channles (Layers as Mary Barry would say)"
+                print(os.path.basename(img_file))
+                print("Not enough channles (Layers as Mary Barry would say)")
                 
         self.save_hashes(outdir, name, already_used)
         return valid_files, duplicate_counter, len(img_files)
@@ -116,7 +116,7 @@ class MPTransformer(Process):
         return success
 
     def check_complete(self, directory):
-        jpgs = filter(lambda x: x.endswith('jpg'), os.listdir(directory))
+        jpgs = [x for x in os.listdir(directory) if x.endswith('jpg')]
         if len(jpgs) > 0:
             return True
         return False
@@ -127,14 +127,14 @@ class MPTransformer(Process):
             name = job['name']
             indir = job['indir']
             outdir = job['outdir']
-            print "Starting {0}".format(name)
+            print("Starting {0}".format(name))
             start = time.time()
             valid_files, duplicate_counter, total_files = self.dedup(indir, outdir, name)
             success = self.transform(valid_files, outdir, name)
 
-            print """{0} finished. {1} successes, {2} duplicates of {3} files processed.
+            print("""{0} finished. {1} successes, {2} duplicates of {3} files processed.
 Comleted in {4:0.2f} seconds""".format(name, success, duplicate_counter,
-                                       total_files, time.time()-start)
+                                       total_files, time.time()-start))
 
             if self.queue.empty():
                 break

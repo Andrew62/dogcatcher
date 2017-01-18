@@ -9,9 +9,9 @@ github: Andrew62
 import os
 import pickle
 import numpy as np
-from config import workspace
+from .config import workspace
 from multiprocessing import Queue
-from multiprocessing_transformer import MPTransformer
+from .multiprocessing_transformer import MPTransformer
 
 def pkl_dump(obj, fname):
     with open(fname, 'wb') as target:
@@ -19,10 +19,10 @@ def pkl_dump(obj, fname):
 
     
 def format_array(classes, new_folders):
-    print 'formatting img ref array...'
+    print('formatting img ref array...')
     data = []
     for folder in new_folders:
-        files = filter(lambda x : x.endswith('jpg'), os.listdir(folder))
+        files = [x for x in os.listdir(folder) if x.endswith('jpg')]
         label = os.path.basename(folder)
         for img in files:
             data.append([label, os.path.join(folder, img)])
@@ -86,19 +86,19 @@ if __name__ == "__main__":
     for p in processes:
         p.join()
     
-    print "makeing train, test, validation split..."
+    print("makeing train, test, validation split...")
     img_data_array = format_array(classes, new_folders)
     
     data_split_percentage = {'train': 0.9, 'test': 0.05, 'valid': 0.05}
     
     data_splits = split_data(img_data_array, data_split_percentage)
     
-    print "Saving..."
-    for name, arr in data_splits.iteritems():
+    print("Saving...")
+    for name, arr in data_splits.items():
         path = os.path.join(PICKLE_DIR, "{0}.pkl".format(name))
         pkl_dump(arr, path)
-        print name, arr.shape
+        print(name, arr.shape)
     class_path = os.path.join(PICKLE_DIR, 'classes.pkl')
     pkl_dump(list(classes), class_path)
 
-    print "complete!"
+    print("complete!")
