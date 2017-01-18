@@ -13,11 +13,22 @@ keeps track of the index for each data subset so it knows
 when to reshuffle.
 """
 
+import pickle
 import traceback
 import threading
 import numpy as np
 from PIL import Image
 from queue import Queue
+
+
+def pkl_load(fp):
+    """
+    Load and permuatate a pickled numpy array
+    :param fp: path to pickle file
+    :return: permutated array
+    """
+    with open(fp, 'rb') as infile:
+        return np.random.permutation(pickle.load(infile))
 
 
 class DataSet(object):
@@ -41,15 +52,6 @@ class DataSet(object):
         self.output_queue = Queue(maxsize=16)
         self.workers = []
         self._event = threading.Event()
-
-    def pkl_load(self, fp):
-        """
-        Load and permuatate a pickled numpy array
-        :param fp: path to pickle file
-        :return: permutated array
-        """
-        with open(fp, 'rb') as infile:
-            return np.random.permutation(pickle.load(infile))
 
     def start(self):
         batch_shape = (self.batch_size, self.img_shape[0], self.img_shape[1], self.img_shape[2])
@@ -139,6 +141,7 @@ class BatchLoader(threading.Thread):
         self.batch_shape = batch_shape
 
         self._stop = event
+
     @staticmethod
     def normalize(img):
         return (img - img.mean())/img.std()
