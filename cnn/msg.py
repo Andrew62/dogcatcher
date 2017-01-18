@@ -6,7 +6,7 @@ Created on Mon Apr 25 21:26:35 2016
 """
 
 import smtplib
-from config import workspace
+from .config import workspace
 from email.mime.text import MIMEText
 
 
@@ -39,6 +39,6 @@ def send_mail(subj, msg):
         mailer = MailMe(username, password)
         mailer.send_message(workspace.to_email, subj, msg)
     except Exception as e:
-        print e
+        print(e)
 
    

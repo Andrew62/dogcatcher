@@ -30,7 +30,7 @@ class OneHot(object):
     @property
     def reverse_class_map(self):
         rev_class_map = {}
-        for key, val in self.class_map.items():
+        for key, val in list(self.class_map.items()):
             rev_class_map[val] = key
         return rev_class_map
         
@@ -47,7 +47,7 @@ class OneHot(object):
         rows = len(arr)
         vec = np.zeros(shape=(rows, self.n_classes), dtype=np.float32)
         for i, category in enumerate(arr):
-            if category not in self.class_map.keys():
+            if category not in list(self.class_map.keys()):
                 raise OneHotError("{0} outside of original classes!".format(category))
             vec[i, self.class_map[category]] = 1
         return vec

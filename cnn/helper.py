@@ -6,6 +6,7 @@ Any VGG specific support code will go in the VGG folder
 import numpy as np
 import pickle as pkl
 import tensorflow as tf
+from functools import reduce
 
 
 def accuracy(predictions, labels):
@@ -38,7 +39,7 @@ def var_summary(var, name):
 
 def __make_cls_pkl__():
     import csv
-    from config import workspace
+    from .config import workspace
     classes = set()
     with open(workspace.data_csv, 'rb') as infile:
         reader = csv.reader(infile)

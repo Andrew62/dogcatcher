@@ -32,7 +32,7 @@ def write_csv(in_dict, fp):
     with open(fp, 'wb') as target:
         writer = csv.DictWriter(target, fields)
         writer.writeheader()
-        for k, values in in_dict.items():
+        for k, values in list(in_dict.items()):
             values['iteration'] = k
             writer.writerow(values)
 
@@ -44,7 +44,7 @@ def get_last_checkpoint(model_dir):
     Loads the most recent checkpoint given a model dir. Returns None otherwise
     """
     files = os.listdir(model_dir)
-    ckpts = filter(lambda x : x.endswith('ckpt'), files)
+    ckpts = [x for x in files if x.endswith('ckpt')]
     most_recent_time = 0
     most_recent_ckpt = None
     for ckpt in ckpts:

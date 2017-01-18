@@ -17,7 +17,7 @@ import traceback
 import threading
 import numpy as np
 from PIL import Image
-from Queue import Queue
+from queue import Queue
 
 
 class DataSet(object):
@@ -102,11 +102,11 @@ class QueueLoader(threading.Thread):
 
     def run(self):
         try:
-            print self.name + " starting"
+            print(self.name + " starting")
             epoch = 0
             while epoch < self.epochs and not self._stop.is_set():
                 data = np.random.permutation(self.data)
-                for idx in xrange(0, data.shape[0], self.batch_size):
+                for idx in range(0, data.shape[0], self.batch_size):
                     batch = data[idx:idx + self.batch_size, :].copy()
                     if (idx + self.batch_size) > data.shape[0]:
                         continue
@@ -116,7 +116,7 @@ class QueueLoader(threading.Thread):
             traceback.print_exc()
             raise e
 
-        print self.name + " stopping"
+        print(self.name + " stopping")
 
 
 class BatchLoader(threading.Thread):
@@ -139,19 +139,18 @@ class BatchLoader(threading.Thread):
         self.batch_shape = batch_shape
 
         self._stop = event
-
     @staticmethod
     def normalize(img):
         return (img - img.mean())/img.std()
 
     def run(self):
         try:
-            print self.name + " starting"
+            print(self.name + " starting")
             while not self._stop.is_set():
                 batch_data = np.ones(shape=self.batch_shape, dtype=np.float32)
                 batch_labels = []
                 epoch, batch = self.in_q.get()
-                for idx in xrange(batch.shape[0]):
+                for idx in range(batch.shape[0]):
                     row = batch[idx, :]
                     batch_data[idx, :, :, :] = np.array(Image.open(row[1]))
                     batch_labels.append(row[0])
