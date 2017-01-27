@@ -69,6 +69,9 @@ with graph.as_default():
         logits, _ = inception.inception_v1(images, num_classes=len(classes),
                                            is_training=True)
 
+    # class probabilities. Only used at the end to see accuracy metrics
+    probabilities = tf.nn.softmax(logits)
+
     # losses
     slim.losses.softmax_cross_entropy(logits, labels)
     total_loss = slim.losses.get_total_loss()
@@ -76,7 +79,11 @@ with graph.as_default():
 
     optimizer = tf.train.AdamOptimizer(0.01)
     train_op = slim.learning.create_train_op(total_loss, optimizer)
+
+    # starts a training loop
     final_loss = slim.learning.train(
         train_op,
         logdir=os.path.join(workspace.inception_cpkt, "log"),
         init_fn=get_init_fn())
+
+print("Final loss: {0:0.2f}".format(final_loss))

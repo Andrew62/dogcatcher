@@ -6,10 +6,10 @@ pickles/
 processed_data/
 raw_data/
 models/
-collection_scripts_p3/
+collection_scripts/
 .AppleDouble/
 .DS_Store
-data_formatting_scripts/.DS_Store
+.DS_Store
 util/
 .idea/
 *.whl
@@ -18,3 +18,5 @@ neon_models/
 *.ipynb
 *.sh
 test_data/
+nets/
+slim/

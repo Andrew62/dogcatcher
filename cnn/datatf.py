@@ -1,5 +1,6 @@
 
 import tensorflow as tf
+from inception_preprocessing import preprocess_image
 
 def batch_producer(filepath, n_classes, **kwargs):
     """Function for loading batches of images and
@@ -24,6 +25,9 @@ def batch_producer(filepath, n_classes, **kwargs):
         shape of the image. Must be in the form of (H,W,C). Image
         will *not* be resized, the value is used for setting
         the shape for the batch queue. Default is (224, 224, 3)
+    is_training : (kwarg) bool
+        when set to true, the loader will apply image transformations.
+        Default is True
     num_threads : (kwarg) int
         number of threads to use for the loader. Default is 4
     """
@@ -31,6 +35,7 @@ def batch_producer(filepath, n_classes, **kwargs):
     img_shape = kwargs.pop("image_shape", (224, 224, 3))
     num_threads = kwargs.pop("num_threads", 4)
     epochs = kwargs.pop("epochs", 70)
+    is_training = kwargs.pop("is_trianing", True)
 
     # loads a series of text files
     filename_queue = tf.train.string_input_producer(filepath, num_epochs=epochs)
@@ -47,11 +52,13 @@ def batch_producer(filepath, n_classes, **kwargs):
     # read the image file
     content = tf.read_file(fname)
 
-    # decode and cast to float
-    img_content = tf.cast(tf.image.decode_jpeg(content, channels=img_shape[-1]), tf.float32)
+    # decode buffer as jpeg
+    img_raw = tf.image.decode_jpeg(content, channels=img_shape[-1])
+
+    img_content = preprocess_image(img_raw, img_shape[0], img_shape[1], is_training=is_training)
 
     # setting the shape is neccessary for the shuffle_batch op. Fails otherwise
-    img_content.set_shape(img_shape)
+    # img_content.set_shape(img_shape)
 
     # load batches of images all multithreaded like
     class_batch, img_batch = tf.train.shuffle_batch([img_class, img_content],
