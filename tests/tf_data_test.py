@@ -4,40 +4,47 @@
 Author: Andrew
 Github: https://github.com/andrew62
 """
-from __future__ import absolute_import
 
-import time
+import pickle
+from cnn import datatf
 import tensorflow as tf
-from cnn.util import pkl_load
-from cnn.encoder import OneHot
-from cnn.config import  workspace
-from cnn.tf_data import train_image_producer
 
-data = pkl_load(workspace.test_pkl)
-encoder = OneHot(pkl_load(workspace.class_pkl))
+# load class pickle index. Used to map the
+# indicies of the training data from one-hot index
+# values to labels
+with open("test_data/dogs/classes.pkl", 'rb') as infile:
+    class_idx = pickle.load(infile)
 
-labels = data[:100, 0]
-paths = data[:100, 1]
+data_path = "test_data/dogs/dogs.csv"
 
-# data = tf.train.slice_input_producer([tf.constant(labels), tf.constant(paths)], num_epochs=1)
-# batch = tf.train.batch(data, batch_size=32)
-imgs, labs = train_image_producer(paths, labels, batch_size=32, epochs=1)
-init = tf.initialize_all_variables()
+# simple graph to test the loading op
+graph = tf.Graph()
+with graph.as_default():
+    # load batches of labels and images
+    one_hot_targets, image_batch = datatf.batch_producer([data_path], len(class_idx))
 
-with tf.Session() as sess:
+    # get the max for each onehot row so we can convert back to text
+    idxs = tf.argmax(one_hot_targets, 1)
+
+
+with tf.Session(graph=graph) as sess:
+    # required to run the data loader
+    tf.local_variables_initializer().run()
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(sess, coord)
-    sess.run(init)
 
-    start = time.time()
-    i = 0.0
+    # run in an infinite loop until we've exceeded the number of epochs
+    # When the epoch limit is reached, function throws and OutOfRangeError
     while True:
         try:
-            print labs
-            print imgs
-            i += 1
+            idx_np = sess.run(idxs)
         except tf.errors.OutOfRangeError:
             break
-    print "Average load time: {0:0.2}".format((time.time()-start)/i)
+
+    # clean up the data loader
     coord.request_stop()
     coord.join(threads, stop_grace_period_secs=2)
+
+    # print to make sure everything is running properly
+    print("\n".join(map(lambda x: class_idx[x], list(idx_np))))
+
