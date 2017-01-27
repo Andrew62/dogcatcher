@@ -42,7 +42,6 @@ def batch_producer(filepath, n_classes, **kwargs):
     _, record = reader.read(filename_queue)
 
     # split out the csv. Defaults to returning strings.
-    # TODO update defaults for encoded one-hot. Should feed in one-hot indicies instead of string names!
     img_class, fname = tf.decode_csv(record, record_defaults=[[1], [""]])
 
     # read the image file
