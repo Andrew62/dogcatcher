@@ -6,121 +6,77 @@ Github: https://github.com/andrew62
 """
 
 import os
-import time
-from . import util
-import shutil
+import util
 import tensorflow as tf
-from .data import DataSet
-from datetime import datetime
+from nets import inception
+from config import workspace
+from datatf import batch_producer
+from datasets import dataset_utils
 
 slim = tf.contrib.slim
 
-
-def train_model(class_pkl, train_pkl, model, model_dir, debug=False, fresh=False):
-    if fresh is True:
-        for the_file in os.listdir(model_dir):
-            filepath = os.path.join(model_dir, the_file)
-            if os.path.isfile(filepath):
-                print("Deleting {0}".format(filepath))
-                os.remove(filepath)
+debug = True
         
-    if debug is True:
-        print("DEBUG MODE")
-        MESSAGE_EVERY = 1
-        EMAILING = False
-        BATCH_SIZE = 16
-        SAVE_ITER = 30
-        EPOCHS = 1
-    else:
-        MESSAGE_EVERY = 25
-        EMAILING = True
-        BATCH_SIZE = 16
-        SAVE_ITER = 5000
-        EPOCHS = 90
-
-    EMAIL_EVERY = MESSAGE_EVERY * 250
-    n_classes = 252
-    train = True
-
-    classes = util.pkl_load(class_pkl)
-    train_set = util.pkl_load(train_pkl)
-    data = DataSet(train_set, BATCH_SIZE, EPOCHS)
-
-    graph = tf.Graph()
-    with graph.as_default():
-        model = model(n_classes, train=train)
-        train_labels_placeholder = tf.placeholder(dtype=tf.float32, name="train_labels",
-                                                  shape=[BATCH_SIZE, n_classes])
-        
-        tf.image_summary("raw_input", model.input_data)
-
-        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model.logits, train_labels_placeholder))
-        tf.scalar_summary('loss', loss)
-        optimizer = tf.train.AdamOptimizer(0.001).minimize(loss)
-        trainable_vars = tf.trainable_variables()
-
-        saver = tf.train.Saver(trainable_vars)
-        initop = tf.initialize_all_variables()
-        merged = tf.merge_all_summaries()
-
-    sess = tf.Session(graph=graph)
-    summary_writer = tf.train.SummaryWriter(os.path.join(model_dir, 'summary', time.strftime("%Y-%m-%d%H%M%S")),
-                                            graph=graph)
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    with sess.as_default():
-        sess.run(initop)
-        print("\n" + "*" * 50)
-        ckpt = tf.train.get_checkpoint_state(model_dir)
-        if ckpt is not None:
-            print("\nCheckpoint {0} restored!".format(os.path.basename(ckpt.model_checkpoint_path)))
-            saver.restore(sess, ckpt.model_checkpoint_path)
-        else:
-            print("Initialized")
-
-        print("Training on {0} exmaples".format(len(data.data)))
-
-        print("\n", "*" * 50)
-        print("Batch size: {0} images".format(BATCH_SIZE))
-        epoch = 0
-        i = 0
-        data.start()
-        try:
-            while epoch <= EPOCHS:
-                start = time.time()
-                train_data, train_labels, epoch = data.batch()
-                train_lab_vec = encoder.encode(train_labels)
-                feed = {model.input_data: train_data,
-                        train_labels_placeholder: train_lab_vec}
-                _, sess_loss, predictions, summary = sess.run([optimizer, loss, model.softmax, merged],
-                                                              feed_dict=feed)
-                summary_writer.add_summary(summary, i)
-
-                if ((i + 1) % MESSAGE_EVERY == 0) or (i == 0):
-                    avg_loss = sess_loss.mean()
-                    total_correct, minibatch_accuracy = util.accuracy(predictions, train_lab_vec)
-                    subj, msg = util.get_message(i, minibatch_accuracy, start, avg_loss,
-                                                 total_correct, epoch, 0.001)
-                    print(msg)
-                    if (((i + 1) % EMAIL_EVERY) == 0) and (EMAILING is True):
-                        send_mail("dogcatcher update: " + subj, msg)
-
-                if ((i + 1) % SAVE_ITER) == 0:
-                    saver.save(sess, os.path.join(model_dir, util.model_name(datetime.now())))
-                    print("\n" + "*" * 50)
-                    print("Successful checkpoint iteration {0}".format(i + 1))
-
-                if (epoch + 1) % 15 == 0:
-                    learning_rate *= 0.1
-                i += 1
+if debug is True:
+    print("DEBUG MODE")
+    BATCH_SIZE = 2
+    EPOCHS = 1
+else:
+    BATCH_SIZE = 16
+    EPOCHS = 90
 
 
-        finally:
-            saver.save(sess, os.path.join(model_dir, util.model_name(datetime.now())))
-            outg = os.path.join(model_dir, "graph")
-            if os.path.exists(outg):
-                shutil.rmtree(outg)
-                tf.train.write_graph(sess.graph_def, outg, "graph.pb")
-            util.pkl_dump(encoder, os.path.join(model_dir, "encoder.pkl"))
-            if EMAILING is True:
-                send_mail(subj, msg)
+classes = util.pkl_load(workspace.class_pkl)
+csv_files = ["/Users/awoizesko/Documents/dogcatcher_Project/dogcatcher/tests/test_data/dogs/dogs.csv"]
+
+if not tf.gfile.Exists(workspace.inception_cpkt):
+    tf.gfile.MakeDirs(workspace.inception_cpkt)
+
+if not os.path.exists(os.path.join(workspace.inception_cpkt, os.path.basename(workspace.inception_url))):
+    dataset_utils.download_and_uncompress_tarball(workspace.inception_url,
+                                                  workspace.inception_cpkt)
+
+
+def get_init_fn():
+    """Returns a function run by the chief worker to warm-start the training."""
+    checkpoint_exclude_scopes = ["InceptionV1/Logits", "InceptionV1/AuxLogits"]
+
+    exclusions = [scope.strip() for scope in checkpoint_exclude_scopes]
+
+    variables_to_restore = []
+    for var in slim.get_model_variables():
+        excluded = False
+        for exclusion in exclusions:
+            if var.op.name.startswith(exclusion):
+                excluded = True
+                break
+        if not excluded:
+            variables_to_restore.append(var)
+
+    return slim.assign_from_checkpoint_fn(
+        os.path.join(workspace.inception_cpkt, 'inception_v1.ckpt'),
+        variables_to_restore)
+
+graph = tf.Graph()
+with graph.as_default():
+    tf.logging.set_verbosity(tf.logging.INFO)
+    labels, images = batch_producer(csv_files, len(classes),
+                                    batch_size=BATCH_SIZE, epochs=EPOCHS,
+                                    img_shape=workspace.img_shape,
+                                    num_threads=2)
+
+    with slim.arg_scope(inception.inception_v1_arg_scope()):
+        logits, _ = inception.inception_v1(images, num_classes=len(classes),
+                                           is_training=True)
+
+    # losses
+    slim.losses.softmax_cross_entropy(logits, labels)
+    total_loss = slim.losses.get_total_loss()
+    tf.summary.scalar('losses/Total_Loss', total_loss)
+
+    optimizer = tf.train.AdamOptimizer(0.01)
+    train_op = slim.learning.create_train_op(total_loss, optimizer)
+    final_loss = slim.learning.train(
+        train_op,
+        logdir=os.path.join(workspace.inception_cpkt, "log"),
+        init_fn=get_init_fn())
