@@ -27,7 +27,7 @@ else:
 
 
 classes = util.pkl_load(workspace.class_pkl)
-csv_files = ["/Users/awoizesko/Documents/dogcatcher_Project/dogcatcher/tests/test_data/dogs/dogs.csv"]
+csv_files = workspace.csvs
 
 if not tf.gfile.Exists(workspace.inception_cpkt):
     tf.gfile.MakeDirs(workspace.inception_cpkt)
