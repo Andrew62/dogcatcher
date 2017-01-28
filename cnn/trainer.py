@@ -7,11 +7,11 @@ Github: https://github.com/andrew62
 
 import os
 import util
+import dataset_utils
 import tensorflow as tf
 from nets import inception
 from config import workspace
 from datatf import batch_producer
-from datasets import dataset_utils
 
 slim = tf.contrib.slim
 
