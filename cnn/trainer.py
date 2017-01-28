@@ -77,7 +77,7 @@ with graph.as_default():
     total_loss = slim.losses.get_total_loss()
     tf.summary.scalar('losses/Total_Loss', total_loss)
 
-    optimizer = tf.train.AdamOptimizer(0.01)
+    optimizer = tf.train.AdamOptimizer(0.001)
     train_op = slim.learning.create_train_op(total_loss, optimizer)
 
     # starts a training loop
