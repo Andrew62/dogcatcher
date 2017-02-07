@@ -29,17 +29,17 @@ else:
 classes = util.pkl_load(workspace.class_pkl)
 csv_files = workspace.csvs
 
-if not tf.gfile.Exists(workspace.inception_cpkt):
-    tf.gfile.MakeDirs(workspace.inception_cpkt)
+if not tf.gfile.Exists(workspace.inception_v3_cpkt):
+    tf.gfile.MakeDirs(workspace.inception_v3_cpkt)
 
-if not os.path.exists(os.path.join(workspace.inception_cpkt, os.path.basename(workspace.inception_url))):
-    dataset_utils.download_and_uncompress_tarball(workspace.inception_url,
-                                                  workspace.inception_cpkt)
+if not os.path.exists(os.path.join(workspace.inception_v3_cpkt, os.path.basename(workspace.inception_V3_url))):
+    dataset_utils.download_and_uncompress_tarball(workspace.inception_v3_url,
+                                                  workspace.inception_V3_cpkt)
 
 
 def get_init_fn():
     """Returns a function run by the chief worker to warm-start the training."""
-    checkpoint_exclude_scopes = ["InceptionV1/Logits", "InceptionV1/AuxLogits"]
+    checkpoint_exclude_scopes = ["InceptionV3/Logits", "InceptionV3/AuxLogits"]
 
     exclusions = [scope.strip() for scope in checkpoint_exclude_scopes]
 
@@ -54,7 +54,7 @@ def get_init_fn():
             variables_to_restore.append(var)
 
     return slim.assign_from_checkpoint_fn(
-        os.path.join(workspace.inception_cpkt, 'inception_v1.ckpt'),
+        os.path.join(workspace.inception_cpkt, 'inception_v3.ckpt'),
         variables_to_restore)
 
 graph = tf.Graph()
