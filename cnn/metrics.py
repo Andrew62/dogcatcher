@@ -1,4 +1,5 @@
 import os
+import csv
 import util
 import numpy as np
 import tensorflow as tf
@@ -6,11 +7,7 @@ from nets import inception
 from config import workspace
 from datatf import read_one_image
 
-# extras for showing image
-import csv
-from PIL import Image
-import matplotlib.pyplot as plt
-%matplotlib inline
+# extras for showing imag
 
 slim = tf.contrib.slim
 
@@ -66,9 +63,3 @@ with tf.Session(graph=graph) as sess:
                 total += 1
 
 print("Top 1: {0:0.2%}\nTop 5: {1:0.2%}\n".format(top1/total, top5/total))
-for idx in pred_idxs[:5]:
-    print(classes[idx], np_prob[idx])
-print("\nTrue class: ", classes[cls])
-with Image.open(fp) as img:
-    plt.imshow(img)
-    plt.axis('off')
