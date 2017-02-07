@@ -43,18 +43,9 @@ def get_last_checkpoint(model_dir):
     
     Loads the most recent checkpoint given a model dir. Returns None otherwise
     """
-    files = os.listdir(model_dir)
-    ckpts = [x for x in files if x.endswith('ckpt')]
-    most_recent_time = 0
-    most_recent_ckpt = None
-    for ckpt in ckpts:
-        ckpt_path = os.path.join(model_dir, ckpt)
-        stats = os.stat(ckpt_path)
-        created_time = stats.st_ctime
-        if created_time > most_recent_time:
-            most_recent_time = created_time
-            most_recent_ckpt = ckpt_path
-    return most_recent_ckpt
+    return list(sorted([os.path.join(model_dir, x) for x in os.listdir(model_dir) if x.startswith('model.ckpt')],
+                key=lambda x: os.path.getmtime(x), reverse=True))[0]
+
 
 def get_message(i, minibatch_accuracy, start, avg_loss, correct, epoch, learning_rate):
     subj = 'Iteration {0} Minibatch accuracy: {1:0.2%} ({2} correct)'.format(i + 1, minibatch_accuracy, correct)
