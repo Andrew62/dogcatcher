@@ -49,16 +49,7 @@ def batch_producer(filepath, n_classes, **kwargs):
     # split out the csv. Defaults to returning strings.
     img_class, fname = tf.decode_csv(record, record_defaults=[[1], [""]])
 
-    # read the image file
-    content = tf.read_file(fname)
-
-    # decode buffer as jpeg
-    img_raw = tf.image.decode_jpeg(content, channels=img_shape[-1])
-
-    img_content = preprocess_image(img_raw, img_shape[0], img_shape[1], is_training=is_training)
-
-    # setting the shape is neccessary for the shuffle_batch op. Fails otherwise
-    # img_content.set_shape(img_shape)
+    img_content = read_one_image(fname)
 
     # load batches of images all multithreaded like
     class_batch, img_batch = tf.train.shuffle_batch([img_class, img_content],
@@ -70,3 +61,31 @@ def batch_producer(filepath, n_classes, **kwargs):
     one_hot_classes = tf.one_hot(class_batch, depth=n_classes,
                                  on_value=1.0, off_value=0.0)
     return one_hot_classes, img_batch
+
+
+def read_one_image(fname, **kwargs):
+    """Reads one image given a filepath
+
+    Parameters
+    -----------
+    fname : str
+        path to a JPEG file
+    img_shape : tuple
+        (kwarg) shape of the eventual image. Default is (224, 224, 3)
+    is_training : bool
+        (kwarg) boolean to tell the loader function if the graph is in training
+        mode or testing. Default is True
+
+    Returns
+    -------
+    preprocessed image
+    """
+    img_shape = kwargs.pop("image_shape", (224, 224, 3))
+    is_training = kwargs.pop("is_training", False)
+    # read the image file
+    content = tf.read_file(fname)
+
+    # decode buffer as jpeg
+    img_raw = tf.image.decode_jpeg(content, channels=img_shape[-1])
+
+    return preprocess_image(img_raw, img_shape[0], img_shape[1], is_training=is_training)
