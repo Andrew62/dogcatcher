@@ -49,7 +49,7 @@ def batch_producer(filepath, n_classes, **kwargs):
     # split out the csv. Defaults to returning strings.
     img_class, fname = tf.decode_csv(record, record_defaults=[[1], [""]])
 
-    img_content = read_one_image(fname)
+    img_content = read_one_image(fname, is_training=is_training, image_shape=img_shape)
 
     # load batches of images all multithreaded like
     class_batch, img_batch = tf.train.shuffle_batch([img_class, img_content],
