@@ -30,7 +30,7 @@ with graph.as_default():
         logits, _ = inception.inception_v1(images, num_classes=len(classes), is_training=False)
     probabilities = tf.nn.softmax(logits)
 
-    checkpoint = checkpoint_path = tf.train.latest_checkpoint(os.path.join(workspace.inception_cpkt, 'log'))
+    checkpoint = tf.train.latest_checkpoint(os.path.join(workspace.inception_cpkt, 'log'))
     init_fn = slim.assign_from_checkpoint_fn(
         checkpoint,
         slim.get_model_variables())
